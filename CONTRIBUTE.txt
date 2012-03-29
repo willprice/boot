@@ -1,0 +1,30 @@
+######### boot - how to contribute #########
+
+git (www.git-scm.com) is the version control system used for boot.
+This instructions tell you how to contribute to the development
+of it.
+
+1) get the latest latex version of boot and unizip it:
+    wget http://www.freerangefactory.org/dl/boot.zip
+    unzip boot.zip
+    cd boot
+
+2) you can see the history of boot with the commmand:
+    gitk
+
+4) Modify and save the content of boot.py or any other file
+
+5) check the status of your work with the command:
+    git status
+
+5) create a patch with the command:
+    git diff > my_patch.patch
+
+6) send the file "my_patch.patch" and an explanation of what you 
+    have done to:
+
+    contact at freerangefactory.org
+
+
+Additionally, you can find more information about VHDL code and hardware at:
+www.freerangefactory.org
