@@ -37,7 +37,7 @@ from multiprocessing import Process, Pipe
 
 # Xilinx device data
 # # http://www.xilinx.com/support/index.htm
-dev_manufacturer  = ['Xilinx', 'Altera-not_implemented', 'Actel-not_implemented'] 
+dev_manufacturer  = ['Xilinx', 'Altera', 'Actel'] 
 dev_family  = ['Spartan-6' ,'Spartan-3', 'Artix', 'Kintex', 'Virtex', 'Zynq', 'CoolRunner', 'XC9500X'] 
 dev_device=['Zynq-7000 XC7Z010','Zynq-7000 XC7Z020','Zynq-7000 XC7Z030','Zynq-7000 XC7Z045','Artix-7 XC7A100T','Artix-7 XC7A200T',
 'Artix-7 XC7A350T','Kintex-7 XC7K70T','Kintex-7 XC7K160T','Kintex-7 XC7K325T','Kintex-7 XC7K355T','Kintex-7 XC7K410T','Kintex-7 XC7K420T',
@@ -687,17 +687,23 @@ class mk_gui:
  
     # filter device dropdown field
     def filter_dropdown(self, widget):
-        # get current family
+        # get current device family
         current_fa = self.fa.get_model()[self.fa.get_active()][0]
 
-        # filter self.de
-        a = self.de.get_children()
-        print a
+        # filter the content of "self.de"
+        model = self.de.get_model()
+        self.de.set_model(None)
+        model.clear()
 
+        # rebuild the "self.de" menu
+        for x in dev_device:
+            if current_fa in x:
+                y=x.split()[1]
+                model.append(None, [y])
+        self.de.set_model(model)
 
-        self.de.clear()
-
-
+        # set the first one 
+        self.de.set_active(0)
 
         return 0
 
@@ -917,7 +923,9 @@ class mk_gui:
         Vbox_syn1.pack_start(Hbox_syn5, False, False, 0)
         Vbox_syn1.pack_start(dev_fixed, False, False, 0) # labels
 
+        # whenever the family menu changed filter and redraw the device menu
         self.fa.connect("changed", self.filter_dropdown)
+        self.filter_dropdown(self.window) # let's filter once at startup
 
         # Create and connect syn_button
         start_syn_button = gtk.Button('Run Synthesis')

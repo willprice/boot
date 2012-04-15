@@ -52,7 +52,7 @@ If you are interested in becoming an active developed of boot.
 2) You will receive a git repository password which will allow you to push your
    changes into the google code repository.
    Once you have the password, add the following line to your file ~/.netrc
-        machine code.google.com login your.email@gmail.com [password] 
+        machine code.google.com login your.email@gmail.com password [password] 
 
 3) Get the boot source code with:
         git clone http://code.google.com/p/boot-vhdl boot
