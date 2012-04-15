@@ -1,0 +1,73 @@
+<h2>boot</h2>
+<p><i>The ideal software tool to write, simulate and synthesize your VHDL code.</i></p>
+
+<p>This software is designed and maintained by <tt>freerangefactory.org</tt>. 
+Here you can find some help on how to use boot.</p>
+
+<h3>How to Install boot</h3>
+<p>boot runs on Linux and can be easily installed by typing the following commands:</p>
+
+<p><tt>wget freerangefactory.org/dl/boot</tt></p>
+<p><tt>chmod +x boot</tt></p>
+<p><tt>./boot --build</tt></p>
+
+<p>That's it ! you now have a fully functional version of boot in just 35 kB.
+Remember that boot is only one file of few KB in size, it is therefore a good 
+practice to keep a copy of it in each of your VHDL project folders.<p>
+
+<h3>How to use boot</h3>
+<p>boot is just one file and can be run by simply typing:<p>
+
+<p><tt>./boot</tt><p>
+
+<p>It is recommendable that you keep your VHDL source files in a folder named
+<tt>src</tt>. Boot will additionally put all its files inside the folder
+<tt>src/build</tt>.</p>
+
+<h3>Compile Tab</h3>
+<p>This tab allows you to automatically check and compile your VHDL code. 
+Use your favorite editor to edit your code files. 
+boot will automatically check and compile your code files every time you modify
+and save any file inside the folder you are currently located.</p>
+
+<h4>top-level design file.</h4> 
+<p>This is your VHDL top-level design file. This files defines your top-level 
+design. The name of this file also implicitly defines your top-level entity.</p>
+
+<p>To disable the automatic compilation of your code, un-check "auto compile". 
+The green/red check indicates whether your code has been successfully compiled.</p>
+ 
+<h3>Simulate Tab</h3>
+<p>Once your code has being successfully compiled, simulation can take place.
+To successfully run a simulation of your project, you need to set your
+VHDL test-bench file in the top-level design file entry field.</p>
+<p>Your project gets automatically compiled and simulated every time you modify
+and save any file inside the folder you are currently located. Please remember
+that the name of the test-bench file must also be the name of the top-design 
+entity in your project.</p>
+
+<h4>Simulation Time.</h4> 
+<p>Here you can select the simulation time. Once you modify this field, the 
+simulation can be rerun by simply pressing the return key. Do not forget to
+press the Zoom Fit button to see the whole simulation window.</p>
+
+<h4>Synthesize</h4>
+<p>This tab allows you to synthesize your code and obtain a <tt>.bin</tt> file that
+can be use to program your FPGA. Two synthesis options are available:</p>
+<p><b>Local Synthesis.</b> You must have Xilinx ISE installed in your local machine.</p> 
+<p><b>Remote Synthesis.</b> Option under development.</p> 
+<p>The synthesis is a feature that is currently under development.</p>
+
+<h4>Help</h4>
+<p>This is help menu. Here you can find and essential help for this program. Mind 
+that the content of the help section is dynamically downloaded from the 
+Internet. To read this help it is necessary for you to be on line.</p>
+
+<h3>Feedback</h3>
+<p>Please direct any feedback about this program to:</p>
+<p><tt>contact(at)freerangefactory.org</tt></p>
+
+<p>Additionally, you can find more information about VHDL code and hardware at:</p>
+<p><tt>www.freerangefactory.org</tt></p>
+
+
