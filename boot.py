@@ -13,23 +13,23 @@ License:  GNU Lesser General Public License
 '''
 
 #    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
+#    it under the terms of the GNU Lesser General Public License as 
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
 #
 #    This program is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
-#    You should have received a copy of the GNU General Public License
+#    You should have received a copy of the GNU Lesser General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-__version__ = '0.12'
+__version__ = 0.13
 __author__ = 'Fabrizio Tappero'
 
 import pygtk, gtk, gobject, glob, os, time, sys, argparse
-import ConfigParser
+import ConfigParser, webkit, httplib
 from gtk import gdk
 pygtk.require('2.0')
 from subprocess import call, Popen, PIPE, STDOUT
@@ -38,7 +38,7 @@ from multiprocessing import Process, Pipe
 # Xilinx device data
 # # http://www.xilinx.com/support/index.htm
 dev_manufacturer  = ['Xilinx', 'Altera', 'Actel'] 
-dev_family  = ['Spartan-6' ,'Spartan-3', 'Artix', 'Kintex', 'Virtex', 'Zynq', 'CoolRunner', 'XC9500X'] 
+dev_family  = ['Spartan-6' ,'Spartan-3','Spartan-3A_DSP', 'Artix', 'Kintex', 'Virtex', 'Zynq', 'CoolRunner', 'XC9500X'] 
 dev_device=['Zynq-7000 XC7Z010','Zynq-7000 XC7Z020','Zynq-7000 XC7Z030','Zynq-7000 XC7Z045','Artix-7 XC7A100T','Artix-7 XC7A200T',
 'Artix-7 XC7A350T','Kintex-7 XC7K70T','Kintex-7 XC7K160T','Kintex-7 XC7K325T','Kintex-7 XC7K355T','Kintex-7 XC7K410T','Kintex-7 XC7K420T',
 'Kintex-7 XC7K480T','Virtex-7 XC7V585T','Virtex-7 XC7V1500T','Virtex-7 XC7V2000T','Virtex-7 XC7VX330T','Virtex-7 XC7VX415T',
@@ -156,10 +156,11 @@ def build():
     print 'All done.'
     return 0
 
-# compile vhdl project in its own process
+# compile and simulate VHDL project in ITS OWN PROCESS (notice that this is not
+# done in a thread but instead in a completely indipended process)
 # this process/function is written in this way because we want it to be ready
 # to run whenever the user saves/modifies any of the VHDL source files.
-# in future rework, the use of gobject.timeout_add() is advisable. More info:
+# in future rework, the use of gobject.timeout_add() is maybe advisable. More info:
 # /usr/share/doc/python-gtk2-tutorial/html/ch-TimeoutsIOAndIdleFunctions.html
 def comp_and_sim_proc(conn):
 
@@ -412,6 +413,7 @@ class mk_gui:
         return 0
 
     # function to generate a drop down menu for the top-level design file entry
+    # TODO this function is not yet implemented
     def entry_keypress_down(self, widget, event):
         # detect arrow Down key pressed
         if event.keyval == gtk.keysyms.Down:
@@ -585,7 +587,7 @@ class mk_gui:
         # simulation options
         sim_opt = self.sim_opt_entry.get_text()
 
-        # synthesis paramenters
+        # synthesis parameters
         syn_tool_path = self.tool_path_entry.get_text()
         syn_cmd = self.tool_command_entry.get_text()
 
@@ -644,12 +646,7 @@ class mk_gui:
                 return 0
             print 'Starting synthesis process.'
             self.syn_p = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
-            # TESTING
-            #self.syn_p = Popen('grep -R "ss" /home/fabrizio/*', shell=True, stdout=PIPE, stderr=STDOUT)
-
-            # TODO how to implement the process output reading without blocking the GUI??
-            #for line in self.syn_p.stdout.readlines():
-            #    print line
+            # TODO work in progress
 
 
 
@@ -669,7 +666,6 @@ class mk_gui:
 
     # populate the FPGA device fields
     def make_dropdown_menu(self, data_in):
-
         # create a gtk.trees with data_in in it
         # note how only the last element of data_in is displayed
         store = gtk.TreeStore(str)
@@ -704,9 +700,75 @@ class mk_gui:
 
         # set the first one 
         self.de.set_active(0)
-
         return 0
 
+    # check for and new version of "boot" and download it
+    def update_boot(self, widget):
+        self.pr_pbar.set_text("checking for updates...")
+    
+        # Test connection health and exit if bad. If good proceed
+        try:
+            conn = httplib.HTTPConnection("www.freerangefactory.org")
+            conn.request("GET", "/dl/boot/boot.py")
+            r1 = conn.getresponse()
+            #print r1.status, r1.reason # 200 OK
+        except:
+            print 'Internet not available'
+            self.pr_pbar.set_text("you seem to be offline")
+            return 1
+    
+        if r1.status == 200 and r1.reason == 'OK':
+            new_boot_file = r1.read() # download whole boot file
+    
+            if '__version__' in new_boot_file:
+                new_boot_ver = [x for x in new_boot_file.splitlines() if x.startswith('__version__')][0].split(' ')[-1]
+                if new_boot_ver > __version__:
+                    print 'The newest boot version is:', new_boot_ver
+                    print 'Your current boot version is', __version__
+                    #update your current boot
+                    #print '###', sys.path[0], os.path.join(sys.path[0], sys.argv[0]) # current path
+                    try:
+                        fl = open(os.path.join(sys.path[0], 'boot'),'w').write(new_boot_ver)
+                        # TODO maybe here there is a way to allow to enter sudo password?
+                        print 'File "boot" successfully updated.'
+                        self.pr_pbar.set_text('file "boot" successfully updated.')
+                    except:
+                        print 'Problems in writing the local "boot" file.'
+                        self.pr_pbar.set_text('problems in writing the local "boot" file.')
+                else:
+                    print 'No new available version of "boot".'
+                    self.pr_pbar.set_text('no new available version of "boot".')
+        else:
+            print 'Problems in connecting to "freerangefactory.org"'
+        return 0
+
+    # set of methods for the help tab browser
+    def go_back(self, widget, data=None):
+        self.browser.go_back()
+    def go_forward(self, widget, data=None):
+        self.browser.go_forward()
+    def go_home(self, widget, data=None):
+        self.browser.open("http://www.freerangefactory.org/dl/boot/boot_help.html")
+    def load_www(self, widge, data=None):
+        url = self.www_adr_bar.get_text()
+        try:
+            url.index("://")
+        except:
+            url = "http://" + url
+        self.www_adr_bar.set_text(url)
+        self.browser.open(url)
+    def update_buttons(self, widget, data=None):
+        self.www_adr_bar.set_text( widget.get_main_frame().get_uri() )
+        self.back_button.set_sensitive(self.browser.can_go_back())
+        forward_button.set_sensitive(self.browser.can_go_forward())
+    def load_progress_amount(self, webview, amount):
+        self.progress.set_fraction(amount/100.0)
+    def load_started(self, webview, frame):
+        self.progress.set_visible(True)
+    def load_finished(self, webview, frame):
+        self.progress.set_visible(False)
+
+    # constructor for the whole GUI
     def __init__(self):
 
         # make the main window
@@ -714,7 +776,7 @@ class mk_gui:
         self.window.connect("delete_event", self.delete)
         self.window.set_border_width(2)
         self.window.set_size_request(890, 500)
-        self.window.set_title("freerangefactory.org - BOOT ver. " + __version__)
+        self.window.set_title("freerangefactory.org - BOOT ver. " + str(__version__))
         
         # make a 1X1 table to put the tabs in (this table is not really needed)
         table = gtk.Table(rows=1, columns=1, homogeneous=False)
@@ -896,8 +958,7 @@ class mk_gui:
         self.de.set_active(0)
         self.pa.set_active(0)
         self.sp.set_active(3)
-        self.de.set_wrap_width(3) # make a two-column drowpdown menu
-
+        self.de.set_wrap_width(3) # make a two-column dropdown menu
 
         # make small labels
         dev_lb1 = gtk.Label()
@@ -936,10 +997,57 @@ class mk_gui:
         Hbox_syn4.pack_start(start_syn_button, False, False, 3)
         Hbox_syn4.pack_start(stop_syn_button, False, False, 3)
         Vbox_syn1.pack_start(Hbox_syn4, False, False, 7)
-
         
         # load the whole Synthesize tab content
         notebook.append_page(Vbox_syn1, gtk.Label('Synthesize'))
+
+
+        # make help tab (this is basically a web browser)
+        scroller = gtk.ScrolledWindow()
+        self.browser = webkit.WebView()
+        self.browser.connect("load-progress-changed", self.load_progress_amount)
+        self.browser.connect("load-started", self.load_started)
+        self.browser.connect("load-finished", self.load_finished)
+        self.browser.connect("load_committed", self.update_buttons)
+        self.www_adr_bar = gtk.Entry()
+        self.www_adr_bar.connect("activate", self.load_www)
+        hlp_hbox = gtk.HBox()
+        hlp_vbox = gtk.VBox()
+        self.progress = gtk.ProgressBar()
+        self.back_button = gtk.ToolButton(gtk.STOCK_GO_BACK)
+        #self.back_button.connect("clicked", go_back)
+        forward_button = gtk.ToolButton(gtk.STOCK_GO_FORWARD)
+        #forward_button.connect("clicked", go_forward)
+        home_button = gtk.ToolButton(gtk.STOCK_HOME)
+        home_button.connect("clicked", self.go_home)
+        # put help tab together
+        hlp_hbox.pack_start(self.back_button, False, False,0)
+        hlp_hbox.pack_start(forward_button, False, False)
+        hlp_hbox.pack_start(home_button, False, False)
+        hlp_hbox.pack_start(self.www_adr_bar, True, True)
+        hlp_vbox.pack_start(hlp_hbox, False, False,5)
+        hlp_vbox.pack_start(scroller, True, True)
+        hlp_vbox.pack_start(self.progress, False, False, 5)
+        scroller.add(self.browser)
+        notebook.append_page(hlp_vbox, gtk.Label('Help')) # load
+
+        self.back_button.set_sensitive(False)
+        forward_button.set_sensitive(False)
+
+        # make Preferences tab
+        check_updates_button = gtk.Button('Check for Updates')
+        pr_Hbox1 = gtk.HBox(False, 0)
+        pr_Hbox1.pack_start(check_updates_button, False, False, 7)
+        self.pr_pbar = gtk.ProgressBar(adjustment=None) # progress bar for "Check for Updates"
+        pr_Hbox1.pack_start(self.pr_pbar, False, False, 7)
+        self.pr_pbar.set_size_request(400,-1)
+        #self.pr_pbar.set_text("you seem to be offline")
+        #self.pr_pbar.set_fraction(0.2) 
+        pr_Vbox1 = gtk.VBox(False, 0)
+        pr_Vbox1.pack_start(pr_Hbox1, False, False, 7)
+        notebook.append_page(pr_Vbox1, gtk.Label('Preferences'))
+        check_updates_button.connect("clicked", self.update_boot)
+        tooltips.set_tip(check_updates_button, "Check and download a new version of boot")
 
         ######## POPULATE COMPILE TAB ########
         # set current working directory as starting point and get
@@ -982,41 +1090,10 @@ class mk_gui:
                 self.dir_entry.set_text(os.path.join(wd,possible_vhdl_tb[0]))
 
         ######## POPULATE HELP TAB ########
-        # load help content into Help tab
-        import urllib
-        try:
-            f = urllib.urlopen( \
-                "http://www.freerangefactory.org/dl/boot/boot_help.html")
-            help_content = f.read()
-            f.close()
-        except:
-            help_content = '<span foreground="#B5B2AC">\n'+\
-                        'This help page  is dynamically downloaded from '+ \
-                        'the Internet.\n'+ \
-                        'Currently, you do no seem to be on-line.</span>'
-
-        # make help area
-        help_layout = gtk.Layout(None, None)
-        help_layout.set_size(650, 900)
-
-        # generate vertical scrollbar for help tab
-        vScrollbar = gtk.VScrollbar(None)
-        table1 = gtk.Table(1, 2, False)
-        table1.attach(vScrollbar, 1, 2, 0, 1, gtk.FILL|gtk.SHRINK,
-                     gtk.FILL|gtk.SHRINK, 0, 2)
-        table1.attach(help_layout, 0, 1, 0, 1, gtk.FILL|gtk.EXPAND,
-	                 gtk.FILL|gtk.EXPAND, 0, 2)
-
-        vAdjust = help_layout.get_vadjustment()
-        vScrollbar.set_adjustment(vAdjust)
-
-        lb0 = gtk.Label()
-        lb0.set_use_markup(gtk.TRUE)
-        lb0.set_markup('<span size="11000" foreground="black">' \
-                        + help_content +'</span>') # load content in tab area
-        lb0.set_alignment(0, 0)
-        notebook.append_page(table1, gtk.Label('Help')) # load
-        help_layout.add(lb0)
+        # load help content into Help tab (all taken from the web)
+        default_www = 'http://www.freerangefactory.org/dl/boot/boot_help.html'
+        self.www_adr_bar.set_text(default_www)
+        self.browser.open(default_www)
 
         ######## POPULATE SYNTHESIZE TAB ########
         # just copy content from the compile dir entry field
