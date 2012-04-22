@@ -25,7 +25,7 @@ License:  GNU Lesser General Public License
 #    You should have received a copy of the GNU Lesser General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-__version__ = 0.13
+__version__ = 0.14
 __author__ = 'Fabrizio Tappero'
 
 import pygtk, gtk, gobject, glob, os, time, sys, argparse
@@ -570,9 +570,9 @@ class mk_gui:
         md.destroy()
         return answer
 
-    # save some parameters in a local .boot configuration file
+    # save some parameters in a local ~/.boot configuration file
     def save_configuration_locally(self):
-        print 'Saving some parameters in local .boot file'
+        print 'Saving some parameters in local "~/.boot" file'
         # get device parameters
         ma = self.ma.get_model()[self.ma.get_active()][0]
         fa = self.fa.get_model()[self.fa.get_active()][0]
@@ -609,18 +609,19 @@ class mk_gui:
         config.set('Last parameters', 'package', pa)
         config.set('Last parameters', 'speed grade', sp)
 
-        # Writing our configuration file to '.boot'
+        # Writing our configuration file to '~/.boot'
         conf_file = os.path.join(os.environ['HOME'],'.boot')
         with open(conf_file, 'wb') as configfile:
             config.write(configfile)
         return 0
 
-    # if a local .boot configuration file exist, load some parameters from it
+    # if a local ~/.boot configuration file exist, load some parameters from it
     def load_configuration_locally(self):
         conf_file = os.path.join(os.environ['HOME'],'.boot')
         if os.path.isfile(conf_file):
-            print 'Loading some parameters from local .boot file'
+            print 'Loading some parameters from local "~/.boot" file' 
             #TODO: work in progress  
+            # maybe we can use this makefile: http://www.xess.com/appnotes/makefile.php
         return 0
 
     # Start and stop the Synthesis of your vhdl design
@@ -637,7 +638,7 @@ class mk_gui:
         # execute stuff
         if action=='start':
 
-            #save some parameters on local .boot file
+            #save some parameters on local "~/.boot" file
             self.save_configuration_locally()
             
             # begin synthesis process unless it has been already started
@@ -647,8 +648,6 @@ class mk_gui:
             print 'Starting synthesis process.'
             self.syn_p = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
             # TODO work in progress
-
-
 
         elif action == 'stop':
             # if the synthesis process exists and is running kill it
@@ -722,13 +721,12 @@ class mk_gui:
     
             if '__version__' in new_boot_file:
                 new_boot_ver = [x for x in new_boot_file.splitlines() if x.startswith('__version__')][0].split(' ')[-1]
-                if new_boot_ver > __version__:
+                if float(new_boot_ver) > float(__version__):
                     print 'The newest boot version is:', new_boot_ver
                     print 'Your current boot version is', __version__
-                    #update your current boot
-                    #print '###', sys.path[0], os.path.join(sys.path[0], sys.argv[0]) # current path
+                    #update your current boot file
                     try:
-                        fl = open(os.path.join(sys.path[0], 'boot'),'w').write(new_boot_ver)
+                        fl = open(os.path.join(sys.path[0], 'boot'),'w').write(new_boot_file)
                         # TODO maybe here there is a way to allow to enter sudo password?
                         print 'File "boot" successfully updated.'
                         self.pr_pbar.set_text('file "boot" successfully updated.')
@@ -760,7 +758,7 @@ class mk_gui:
     def update_buttons(self, widget, data=None):
         self.www_adr_bar.set_text( widget.get_main_frame().get_uri() )
         self.back_button.set_sensitive(self.browser.can_go_back())
-        forward_button.set_sensitive(self.browser.can_go_forward())
+        self.forward_button.set_sensitive(self.browser.can_go_forward())
     def load_progress_amount(self, webview, amount):
         self.progress.set_fraction(amount/100.0)
     def load_started(self, webview, frame):
@@ -1015,14 +1013,14 @@ class mk_gui:
         hlp_vbox = gtk.VBox()
         self.progress = gtk.ProgressBar()
         self.back_button = gtk.ToolButton(gtk.STOCK_GO_BACK)
-        #self.back_button.connect("clicked", go_back)
-        forward_button = gtk.ToolButton(gtk.STOCK_GO_FORWARD)
-        #forward_button.connect("clicked", go_forward)
+        self.back_button.connect("clicked", self.go_back)
+        self.forward_button = gtk.ToolButton(gtk.STOCK_GO_FORWARD)
+        self.forward_button.connect("clicked", self.go_forward)
         home_button = gtk.ToolButton(gtk.STOCK_HOME)
         home_button.connect("clicked", self.go_home)
         # put help tab together
         hlp_hbox.pack_start(self.back_button, False, False,0)
-        hlp_hbox.pack_start(forward_button, False, False)
+        hlp_hbox.pack_start(self.forward_button, False, False)
         hlp_hbox.pack_start(home_button, False, False)
         hlp_hbox.pack_start(self.www_adr_bar, True, True)
         hlp_vbox.pack_start(hlp_hbox, False, False,5)
@@ -1032,7 +1030,7 @@ class mk_gui:
         notebook.append_page(hlp_vbox, gtk.Label('Help')) # load
 
         self.back_button.set_sensitive(False)
-        forward_button.set_sensitive(False)
+        self.forward_button.set_sensitive(False)
 
         # make Preferences tab
         check_updates_button = gtk.Button('Check for Updates')
@@ -1110,7 +1108,7 @@ class mk_gui:
         # default xst command
         self.tool_command_entry.set_text('pwd')
 
-        # load some data from a possible .boot local file
+        # load some data from a possible ~/.boot local file
         self.load_configuration_locally()
 
         # show all the widgets

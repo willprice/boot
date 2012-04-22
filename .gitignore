@@ -23,9 +23,9 @@ Thumbs.db
 ~*
 *~
 
-# Some folders #
-#old/
+# Some folders to ignore #
+old/
 src/build
-
+backup/
 
 
