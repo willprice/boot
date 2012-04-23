@@ -746,7 +746,7 @@ class mk_gui:
     def go_forward(self, widget, data=None):
         self.browser.go_forward()
     def go_home(self, widget, data=None):
-        self.browser.open("http://www.freerangefactory.org/dl/boot/boot_help.html")
+        self.browser.open("http://www.freerangefactory.org/site/pmwiki.php/Main/BootDoc")
     def load_www(self, widge, data=None):
         url = self.www_adr_bar.get_text()
         try:
@@ -1089,7 +1089,7 @@ class mk_gui:
 
         ######## POPULATE HELP TAB ########
         # load help content into Help tab (all taken from the web)
-        default_www = 'http://www.freerangefactory.org/dl/boot/boot_help.html'
+        default_www = 'http://www.freerangefactory.org/site/pmwiki.php/Main/BootDoc'
         self.www_adr_bar.set_text(default_www)
         self.browser.open(default_www)
 
