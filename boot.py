@@ -25,15 +25,17 @@ License:  GNU Lesser General Public License
 #    You should have received a copy of the GNU Lesser General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-__version__ = 0.15
+__version__ = 0.16
 __author__ = 'Fabrizio Tappero'
 
 import pygtk, gtk, gobject, glob, os, time, sys, argparse
 import ConfigParser, webkit, httplib
+
 from gtk import gdk
 pygtk.require('2.0')
 from subprocess import call, Popen, PIPE, STDOUT
 from multiprocessing import Process, Pipe
+import gobject
 
 # Xilinx device data
 # # http://www.xilinx.com/support/index.htm
@@ -169,7 +171,9 @@ def build():
     print 'All done.'
     return 0
 
-# create a "src" folder and put in it some basic VHDL files.
+# create a "src" folder and put in it two basic VHDL files as well as a
+# constraints file. This is just to help beginners to get started with boot
+
 def quick_start():
     call('clear'.split())
 
@@ -989,10 +993,11 @@ class mk_gui:
         files = [os.path.basename(x) for x in files]
 
         # take away all files with "_tb" in its name
+        # in fact test-bench files will not be synthesized
         for x in files:
             if '_tb' in x: files.remove(x) 
         
-        # constrain file
+        # find constrain files
         constraints_file = glob.glob(os.path.join(wd,'*.ucf'))
 
         print 'Synthesis script about to ge generated.'
@@ -1035,10 +1040,9 @@ class mk_gui:
         tl = self.dir_entry.get_text()
         path = self.tool_path_entry.get_text()
         cmd = self.tool_command_entry.get_text()
-
         wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
 
-        # work in progress
+        # work in progress warming window
         #self.on_warn('Sorry mate, this feature is not implemented yet.')
 
         # execute stuff
@@ -1053,9 +1057,10 @@ class mk_gui:
                 return 0
             print 'Starting synthesis process.'
             self.syn_textbuffer.set_text('Synthesis process output window.\n')
-            self.syn_textbuffer.insert_at_cursor('\n')
+            self.syn_textbuffer.insert_at_cursor('\n') # this just add text
 
-            # delete ISE project
+            # delete all ISE project inside "build"
+            # this will guarantee that synthesis will start from the beginning
             all_unwanted_fls = glob.glob(os.path.join(wd,'build','*.xise'))
             for fl in all_unwanted_fls:
                 os.remove(fl)
@@ -1063,17 +1068,12 @@ class mk_gui:
             # execute synthesis script
             cmd ='cd src && '+ self.tool_command_entry.get_text()
             self.syn_p = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
-            self.syn_p.wait()
-            for line in self.syn_p.stdout.readlines():
-                self.syn_textbuffer.insert_at_cursor(line)
-
-
-
-
-            print self.syn_p.stdout.readline()
-
-            # TODO work in progress
-            # redirect tsdoutput to a synthesis text window
+            
+            # lets now redirect syn_p stdout to a GUI methods using "gobject"
+            gobject.io_add_watch(self.syn_p.stdout,
+                                 gobject.IO_IN,
+                                 self.write_to_syn_output)
+            # done !
 
         elif action == 'stop':
             # if the synthesis process exists and is running kill it
@@ -1088,6 +1088,15 @@ class mk_gui:
         else:
             print 'Wrong synthesis command.'
         return 0
+
+    # this method allows data in to get directed to the synthesis output window
+    def write_to_syn_output(self, fd, condition):
+        if condition == gobject.IO_IN:
+            char = fd.read(1) # read one byte at the time
+            self.syn_textbuffer.insert_at_cursor(char)
+            return True
+        else:
+            return False
 
     # populate the FPGA device fields
     def make_dropdown_menu(self, data_in):
@@ -1192,6 +1201,12 @@ class mk_gui:
     def load_finished(self, webview, frame):
         self.progress.set_visible(False)
 
+    # re-scroll the synthesis text output window so that
+    # new text is always shown
+    def syn_rescroll(self, widget):
+        self.vadj.set_value(self.vadj.upper-self.vadj.page_size)
+        self.syn_scroller.set_vadjustment(self.vadj)
+
     # constructor for the whole GUI
     def __init__(self):
 
@@ -1229,7 +1244,7 @@ class mk_gui:
         # load some fields into Simulate tab
         Hbox3 = gtk.HBox(False, 0)
         self.sim_opt_entry = gtk.Entry()# make simulation option field entry
-        self.sim_opt_entry.set_text('--stop-time=100ns')
+        self.sim_opt_entry.set_text('--stop-time=200ns')
         sim_opt_label = gtk.Label("Simulation options: ") # text label
         Hbox3.pack_start(sim_opt_label, False, False, 2)
         Hbox3.pack_start(self.sim_opt_entry, True, True, 2)
@@ -1402,13 +1417,20 @@ class mk_gui:
         dev_fixed.put(dev_lb1,95,0)
 
         # page synthesis output text area
-        syn_scroller = gtk.ScrolledWindow()
-        syn_scroller.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.syn_scroller = gtk.ScrolledWindow()
+        self.syn_scroller.set_shadow_type(gtk.SHADOW_ETCHED_IN)
+        self.syn_scroller.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         syn_out = gtk.TextView()
-        syn_out.set_editable(True)
+        syn_out.set_left_margin (10);
+        syn_out.set_right_margin (10);
+        #syn_out.set_editable(True)
         self.syn_textbuffer = syn_out.get_buffer()
-        syn_scroller.add(syn_out)
+        self.syn_scroller.add(syn_out)
         self.syn_textbuffer.set_text('ready to go!') 
+    
+        # let's keep the new text in "syn_textbuffer" always in view
+        self.vadj = self.syn_scroller.get_vadjustment()
+        self.vadj.connect('changed',self.syn_rescroll)
 
         # put all together
         Hbox_syn5.pack_start(self.ma, False, False,3) # FPGA manufacturer
@@ -1443,7 +1465,7 @@ class mk_gui:
         Hbox_syn4.pack_start(start_syn_button, False, False, 3)
         Hbox_syn4.pack_start(stop_syn_button, False, False, 3)
         Vbox_syn1.pack_start(Hbox_syn4, False, False, 7)
-        Vbox_syn1.pack_start(syn_scroller, True, True)
+        Vbox_syn1.pack_start(self.syn_scroller, True, True)
 
         # load the whole Synthesize tab content
         notebook.append_page(Vbox_syn1, gtk.Label('Synthesize'))
@@ -1552,9 +1574,9 @@ class mk_gui:
         try:
             self.tool_path_entry.set_text('source ' + res + '/settings32.sh')
         except:
-            self.tool_path_entry.set_text('source /media/lin_sw/Xilinx/13.2/ISE_DS/settings32.sh')
+            self.tool_path_entry.set_text('source /opt/Xilinx/13.2/ISE_DS/settings32.sh')
 
-        # default xst command
+        # default xtclsh command
         self.tool_command_entry.set_text('None')
 
         # load some data from a possible ~/.boot local file
