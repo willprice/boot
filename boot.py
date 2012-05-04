@@ -38,35 +38,36 @@ from multiprocessing import Process, Pipe
 # Xilinx device data
 # # http://www.xilinx.com/support/index.htm
 dev_manufacturer  = ['Xilinx', 'Altera', 'Actel'] 
-dev_family  = ['Spartan-6' ,'Spartan-3','Spartan-3A_DSP', 'Artix', 'Kintex', 'Virtex', 'Zynq', 'CoolRunner', 'XC9500X'] 
-dev_device=['Zynq-7000 XC7Z010','Zynq-7000 XC7Z020','Zynq-7000 XC7Z030','Zynq-7000 XC7Z045','Artix-7 XC7A100T','Artix-7 XC7A200T',
-'Artix-7 XC7A350T','Kintex-7 XC7K70T','Kintex-7 XC7K160T','Kintex-7 XC7K325T','Kintex-7 XC7K355T','Kintex-7 XC7K410T','Kintex-7 XC7K420T',
-'Kintex-7 XC7K480T','Virtex-7 XC7V585T','Virtex-7 XC7V1500T','Virtex-7 XC7V2000T','Virtex-7 XC7VX330T','Virtex-7 XC7VX415T',
-'Virtex-7 XC7VX485T','Virtex-7 XC7VX550T','Virtex-7 XC7VX690T','Virtex-7 XC7VX980T','Virtex-7 XC7VX1140T','Virtex-7 XC7VH290T',
-'Virtex-7 XC7VH580T','Virtex-7 XC7VH870T','Virtex-6 XC6VLX75T','Virtex-6 XC6VLX130T','Virtex-6 XC6VLX195T','Virtex-6 XC6VLX240T ',
-'Virtex-6 XC6VLX365T','Virtex-6 XC6VLX550T','Virtex-6 XC6VLX760','Virtex-6 XC6VSX315T','Virtex-6 XC6VSX475T','Virtex-6 XC6VHX250T',
-'Virtex-6 XC6VHX255T','Virtex-6 XC6VHX380T','Virtex-6 XC6VHX565T','Virtex-6Q XQ6VLX130T','Virtex-6Q XQ6VLX240T','Virtex-6Q XQ6VLX550T',
-'Virtex-6Q XQ6VSX315T','Virtex-6Q XQ6VSX475T','Virtex-5 XC5VLX30','Virtex-5 XC5VLX50','Virtex-5 XC5VLX85','Virtex-5 XC5VLX110',
-'Virtex-5 XC5VLX155','Virtex-5 XC5VLX220','Virtex-5 XC5VLX330','Virtex-5 XC5VLX20T','Virtex-5 XC5VLX30T','Virtex-5 XC5VLX50T',
-'Virtex-5 XC5VLX85T','Virtex-5 XC5VLX110T','Virtex-5 XC5VLX155T','Virtex-5 XC5VLX220T','Virtex-5 XC5VLX330T','Virtex-5 XC5VSX35T',
-'Virtex-5 XC5VSX50T','Virtex-5 XC5VSX95T','Virtex-5 XC5VSX240T','Virtex-5 XC5VFX30T','Virtex-5 XC5VFX70T','Virtex-5 XC5VFX100T',
-'Virtex-5 XC5VFX130T','Virtex-5 XC5VFX200T','Virtex-5Q XQ5VLX85','Virtex-5Q XQ5VLX110','Virtex-5Q XQ5VLX30T','Virtex-5Q XQ5VLX110T',
-'Virtex-5Q XQ5VLX155T','Virtex-5Q XQ5VLX220T','Virtex-5Q XQ5VLX330T','Virtex-5Q XQ5VSX50T','Virtex-5Q XQ5VSX95T','Virtex-5Q XQ5VSX240T',
-'Virtex-5Q XQ5VFX70T','Virtex-5Q XQ5VFX100T','Virtex-5Q XQ5VFX130T','Virtex-5Q XQ5VFX200T','Virtex-5QV XQR5VFX130','Virtex-4 XC4VLX15',
-'Virtex-4 XC4VLX25','Virtex-4 XC4VLX40','Virtex-4 XC4VLX60','Virtex-4 XC4VLX80','Virtex-4 XC4VLX100','Virtex-4 XC4VLX160',
-'Virtex-4 XC4VLX200','Virtex-4 XC4VSX25','Virtex-4 XC4VSX35','Virtex-4 XC4VSX55','Virtex-4 XC4VFX12','Virtex-4 XC4VFX20',
-'Virtex-4 XC4VFX40','Virtex-4 XC4VFX60','Virtex-4 XC4VFX100','Virtex-4 XC4VFX140','Virtex-4Q XQ4VLX25','Virtex-4Q XQ4VLX40',
-'Virtex-4Q XQ4VLX60','Virtex-4Q XQ4VLX80','Virtex-4Q XQ4VLX100','Virtex-4Q XQ4VLX160','Virtex-4Q XQ4VSX55','Virtex-4Q XQ4VFX60',
-'Virtex-4Q XQ4VFX100','Virtex-4QV XQR4VSX55','Virtex-4QV XQR4VFX60','Virtex-4QV XQR4VFX140','Virtex-4QV XQR4VLX200','Spartan-6 XC6SLX4',
-'Spartan-6 XC6SLX9','Spartan-6 XC6SLX16','Spartan-6 XC6SLX25','Spartan-6 XC6SLX45','Spartan-6 XC6SLX75','Spartan-6 XC6SLX100',
-'Spartan-6 XC6SLX150','Spartan-6 XC6SLX25T','Spartan-6 XC6SLX45T','Spartan-6 XC6SLX75T','Spartan-6 XC6SLX100T','Spartan-6 XC6SLX150T',
-'Spartan-6Q XQ6SLX75','Spartan-6Q XQ6SLX150','Spartan-6Q XQ6SLX75T','Spartan-6Q XQ6SLX150T','Spartan-3A_DSP XC3SD1800A',
-'Spartan-3A_DSP XC3SD3400A','Spartan-3AN XC3S50AN','Spartan-3AN XC3S200AN','Spartan-3AN XC3S400AN','Spartan-3AN XC3S700AN',
-'Spartan-3AN XC3S1400AN','Spartan-3A XC3S50A','Spartan-3A XC3S200A','Spartan-3A XC3S400A','Spartan-3A XC3S700A','Spartan-3A XC3S1400A',
-'Spartan-3L XC3S1000L','Spartan-3L XC3S1500L','Spartan-3L XC3S4000L','Spartan-3E XC3S100E','Spartan-3E XC3S250E','Spartan-3E XC3S500E',
-'Spartan-3E XC3S1200E','Spartan-3E XC3S1600E','Spartan-3 XC3S50','Spartan-3 XC3S200','Spartan-3 XC3S400','Spartan-3 XC3S1000',
-'Spartan-3 XC3S1500','Spartan-3 XC3S2000','Spartan-3 XC3S4000','Spartan-3 XC3S5000','CoolRunner-II XC2C32A','CoolRunner-II XC2C64A',
-'CoolRunner-II XC2C128','CoolRunner-II XC2C256','CoolRunner-II XC2C384','CoolRunner-II XC2C512','XC9500XL XC9536XL','XC9500XL XC9572XL',
+dev_family  = ['Spartan6','Spartan3','Spartan3A','Spartan3E','Artix','Kintex',
+'Virtex4','Virtex5','Virtex6','Virtex7','Zynq','CoolRunner','XC9500X']
+dev_device=['Zynq7000 XC7Z010','Zynq7000 XC7Z020','Zynq7000 XC7Z030','Zynq7000 XC7Z045','Artix7 XC7A100T','Artix7 XC7A200T',
+'Artix7 XC7A350T','Kintex7 XC7K70T','Kintex7 XC7K160T','Kintex7 XC7K325T','Kintex7 XC7K355T','Kintex7 XC7K410T','Kintex7 XC7K420T',
+'Kintex7 XC7K480T','Virtex7 XC7V585T','Virtex7 XC7V1500T','Virtex7 XC7V2000T','Virtex7 XC7VX330T','Virtex7 XC7VX415T',
+'Virtex7 XC7VX485T','Virtex7 XC7VX550T','Virtex7 XC7VX690T','Virtex7 XC7VX980T','Virtex7 XC7VX1140T','Virtex7 XC7VH290T',
+'Virtex7 XC7VH580T','Virtex7 XC7VH870T','Virtex6 XC6VLX75T','Virtex6 XC6VLX130T','Virtex6 XC6VLX195T','Virtex6 XC6VLX240T ',
+'Virtex6 XC6VLX365T','Virtex6 XC6VLX550T','Virtex6 XC6VLX760','Virtex6 XC6VSX315T','Virtex6 XC6VSX475T','Virtex6 XC6VHX250T',
+'Virtex6 XC6VHX255T','Virtex6 XC6VHX380T','Virtex6 XC6VHX565T','Virtex6Q XQ6VLX130T','Virtex6Q XQ6VLX240T','Virtex6Q XQ6VLX550T',
+'Virtex6Q XQ6VSX315T','Virtex6Q XQ6VSX475T','Virtex5 XC5VLX30','Virtex5 XC5VLX50','Virtex5 XC5VLX85','Virtex5 XC5VLX110',
+'Virtex5 XC5VLX155','Virtex5 XC5VLX220','Virtex5 XC5VLX330','Virtex5 XC5VLX20T','Virtex5 XC5VLX30T','Virtex5 XC5VLX50T',
+'Virtex5 XC5VLX85T','Virtex5 XC5VLX110T','Virtex5 XC5VLX155T','Virtex5 XC5VLX220T','Virtex5 XC5VLX330T','Virtex5 XC5VSX35T',
+'Virtex5 XC5VSX50T','Virtex5 XC5VSX95T','Virtex5 XC5VSX240T','Virtex5 XC5VFX30T','Virtex5 XC5VFX70T','Virtex5 XC5VFX100T',
+'Virtex5 XC5VFX130T','Virtex5 XC5VFX200T','Virtex5Q XQ5VLX85','Virtex5Q XQ5VLX110','Virtex5Q XQ5VLX30T','Virtex5Q XQ5VLX110T',
+'Virtex5Q XQ5VLX155T','Virtex5Q XQ5VLX220T','Virtex5Q XQ5VLX330T','Virtex5Q XQ5VSX50T','Virtex5Q XQ5VSX95T','Virtex5Q XQ5VSX240T',
+'Virtex5Q XQ5VFX70T','Virtex5Q XQ5VFX100T','Virtex5Q XQ5VFX130T','Virtex5Q XQ5VFX200T','Virtex5QV XQR5VFX130','Virtex4 XC4VLX15',
+'Virtex4 XC4VLX25','Virtex4 XC4VLX40','Virtex4 XC4VLX60','Virtex4 XC4VLX80','Virtex4 XC4VLX100','Virtex4 XC4VLX160',
+'Virtex4 XC4VLX200','Virtex4 XC4VSX25','Virtex4 XC4VSX35','Virtex4 XC4VSX55','Virtex4 XC4VFX12','Virtex4 XC4VFX20',
+'Virtex4 XC4VFX40','Virtex4 XC4VFX60','Virtex4 XC4VFX100','Virtex4 XC4VFX140','Virtex4Q XQ4VLX25','Virtex4Q XQ4VLX40',
+'Virtex4Q XQ4VLX60','Virtex4Q XQ4VLX80','Virtex4Q XQ4VLX100','Virtex4Q XQ4VLX160','Virtex4Q XQ4VSX55','Virtex4Q XQ4VFX60',
+'Virtex4Q XQ4VFX100','Virtex4QV XQR4VSX55','Virtex4QV XQR4VFX60','Virtex4QV XQR4VFX140','Virtex4QV XQR4VLX200','Spartan6 XC6SLX4',
+'Spartan6 XC6SLX9','Spartan6 XC6SLX16','Spartan6 XC6SLX25','Spartan6 XC6SLX45','Spartan6 XC6SLX75','Spartan6 XC6SLX100',
+'Spartan6 XC6SLX150','Spartan6 XC6SLX25T','Spartan6 XC6SLX45T','Spartan6 XC6SLX75T','Spartan6 XC6SLX100T','Spartan6 XC6SLX150T',
+'Spartan6Q XQ6SLX75','Spartan6Q XQ6SLX150','Spartan6Q XQ6SLX75T','Spartan6Q XQ6SLX150T','Spartan3A_DSP XC3SD1800A',
+'Spartan3A_DSP XC3SD3400A','Spartan3AN XC3S50AN','Spartan3AN XC3S200AN','Spartan3AN XC3S400AN','Spartan3AN XC3S700AN',
+'Spartan3AN XC3S1400AN','Spartan3A XC3S50A','Spartan3A XC3S200A','Spartan3A XC3S400A','Spartan3A XC3S700A','Spartan3A XC3S1400A',
+'Spartan3L XC3S1000L','Spartan3L XC3S1500L','Spartan3L XC3S4000L','Spartan3E XC3S100E','Spartan3E XC3S250E','Spartan3E XC3S500E',
+'Spartan3E XC3S1200E','Spartan3E XC3S1600E','Spartan3 XC3S50','Spartan3 XC3S200','Spartan3 XC3S400','Spartan3 XC3S1000',
+'Spartan3 XC3S1500','Spartan3 XC3S2000','Spartan3 XC3S4000','Spartan3 XC3S5000','CoolRunnerII XC2C32A','CoolRunnerII XC2C64A',
+'CoolRunnerII XC2C128','CoolRunnerII XC2C256','CoolRunnerII XC2C384','CoolRunnerII XC2C512','XC9500XL XC9536XL','XC9500XL XC9572XL',
 'XC9500XL XC95144XL','XC9500XL XC95288XL']
 #dev_device = [x.split()[1] for x in dev_device]
 
@@ -166,6 +167,126 @@ def build():
         print 'Operating system not supported.'
         pass
     print 'All done.'
+    return 0
+
+# create a "src" folder and put in it some basic VHDL files.
+def quick_start():
+    call('clear'.split())
+
+    content_fl1 = '''--- ##### file: counter_top.vhdl #####
+-- This is the VHDL top-level design file. This file defines the top-level 
+-- entity of your VHDL design.
+-- library
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all; 
+ 
+-- entity
+entity counter_top is
+port (
+     cout    :out std_logic_vector (7 downto 0);
+     up_down :in  std_logic;               -- up down control for counter
+     clk     :in  std_logic;               -- Input clock
+     reset   :in  std_logic);              -- Input reset
+end entity;
+
+-- architecture
+architecture rtl of counter_top is
+    signal count :std_logic_vector (7 downto 0);
+    begin
+        process (clk, reset) begin 
+            if (reset = '1') then  
+                count <= (others=>'0');
+            elsif (rising_edge(clk)) then
+                if (up_down = '1') then
+                    count <= std_logic_vector(unsigned(count) + 1);
+                else
+                    count <= std_logic_vector(unsigned(count) - 1);
+                end if;
+            end if;
+        end process;
+        cout <= count;
+end architecture;
+'''
+
+    content_fl2 = '''--- ##### file: counter_tb.vhdl #####
+-- This is the test-bench file and is used to drive the simulation of 
+-- your design. This file is not used during synthesis.
+-- library
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+-- entity
+entity counter_tb is
+end entity;
+
+-- architecture
+architecture TB of counter_tb is
+ 
+    component counter_top
+    port( cout:     out std_logic_vector(7 downto 0);
+          up_down:  in std_logic;
+          reset:    in std_logic;
+          clk:      in std_logic);
+    end component;
+ 
+    signal cout:    std_logic_vector(7 downto 0);
+    signal up_down: std_logic; 
+    signal reset:   std_logic; 
+    signal clk:     std_logic; 
+ 
+begin
+ 
+    dut: counter_top port map (cout, up_down, reset, clk); 
+ 
+    process
+    begin
+        clk <= '0';  
+        wait for 10 ns;
+        clk <= '1';
+        wait for 10 ns;
+    end process;
+
+    process
+    begin
+        up_down <= '1';
+        reset <= '1';
+        wait for 10 ns;
+        reset <= '0';
+        wait for 500 ns;
+ 
+        up_down <= '0';
+        wait for 500 ns;
+    end process;
+end;
+'''
+
+    content_fl3 = '''--- ##### file: board.ucf #####
+# simple example of a constraints file that you need when synthesize
+# your design. This file is specific to your FPGA board.
+
+net fpga_clk       loc = p43;
+net sdram_clk      loc = p40;
+net sdram_clk_fb   loc = p41;
+net ras_n          loc = p59;
+net cas_n          loc = p60;
+net we_n           loc = p64;
+net bs             loc = p53;
+net a<0>           loc = p49;
+net a<1>           loc = p48;
+net a<2>           loc = p46;
+'''
+
+    print 'Building a "src" folder and a basic VHDL working environment.' 
+    try:
+        os.path.os.mkdir(os.path.join(os.getcwd(), 'src')) # make "src" dir
+        open(os.path.join(os.getcwd(),'src','counter_top.vhdl'),'w').write(content_fl1)
+        open(os.path.join(os.getcwd(),'src','counter_tb.vhdl'),'w').write(content_fl2)
+        open(os.path.join(os.getcwd(),'src','board.ucf'),'w').write(content_fl3)            
+    except:
+        print 'Problems in writing. You might have permission problems or\n', \
+              'the "src" folder already exists.\n'
     return 0
 
 # compile and simulate VHDL project in ITS OWN PROCESS (notice that this is not
@@ -295,19 +416,24 @@ def comp_and_sim_proc(conn):
     return 0
 
 # generate and save a Xilinx ISE xtclsh script
-def gen_xil_syn_script(syn_out_dir, tld_file, files, constraints_file,
+def gen_xil_syn_script(syn_out_dir, tld_file, vhdl_files, constraints_file,
                        dev_family,dev_device, dev_package, dev_speed):
 
-    _files = ''
-    for x in files:
-        _files += ' ../' + x
-    vhdl_files =  '[list %s]' % _files
+    # formal vhdl file list
+    vhdl_files = '[ list ../' + ' ../'.join(vhdl_files) + ' ]'
 
+    # format constraints file list and take the first one
+    if len(constraints_file) == 0:
+        constraints_file = ''
+    elif len(constraints_file)>0:
+        constraints_file = constraints_file[0]
+        constraints_file = os.path.basename(constraints_file) # strip whole path
+        constraints_file = '../' + constraints_file
     content = '''#
 # xil_syn_script.tcl
 #
 # script to synthesize your design using xtclsh from Xiling ISE
-# usage: xtclsh xil_syn_script.tcl
+# usage: xtclsh build/xil_syn_script.tcl
 #
 # this file is automatically generated by "boot"
 #
@@ -328,7 +454,7 @@ set cableserver_host {}
 
 set proj $tld_file
 
-puts "Running ISE xtclsh script: \\"xil_syn_script.tcl\\"
+puts "Running ISE xtclsh script: \\"xil_syn_script.tcl\\" automatically generated"
 
 if { $cableserver_host == "" } {
   puts "Running with the board connected to the local machine.\\n"
@@ -344,11 +470,11 @@ cd $compile_directory
 
 
 # Create a new project or open project
-set proj_exists [file exists $proj.ise]
+set proj_exists [file exists $proj.xise]
 
 if {$proj_exists == 0} {
     puts "Creating a new Xilinx ISE project ..."
-    project new $proj.ise
+    project new $proj.xise
 
     # Project settings
     project set family  %s
@@ -357,7 +483,7 @@ if {$proj_exists == 0} {
     project set speed   %s
 
     # Add source files to the project
-    foreach filename $hdl_files {
+    foreach filename $vhdl_files {
       xfile add $filename
     }
     xfile add $constraints_file
@@ -372,11 +498,10 @@ if {$proj_exists == 0} {
     puts "Opening existing Xilinx ISE project"
 
     # Open the existing project
-    project open $proj.ise
+    project open $proj.xise
 }
 
 # Implementation properties options
-
 # MAP
 #project set "Map Effort Level" Medium -process map
 #project set "Perform Timing-Driven Packing and Placement" true -process map
@@ -386,7 +511,6 @@ if {$proj_exists == 0} {
 # PAR
 #project set "Place & Route Effort Level (Overall)" Standard
 #project set "Extra Effort (Highest PAR level only)" Normal
-
 
 # Implement Design
 puts "Implement Design..."
@@ -427,45 +551,43 @@ puts $f_id "addDevice -p 3 -part xc2c64a"
 puts $f_id "readIdcode -p 1"
 puts $f_id "program -p 1"
 puts $f_id "quit"
-
 close $f_id
 
-puts "\n  Switch on the Spartan3E board, connect the USB cable."
-puts -nonewline "  Press Enter when you are ready to download...\\a"
-flush stdout
-
+#puts "\\n Switch on the Spartan3E board, connect the USB cable."
+#puts -nonewline "  Press Enter when you are ready to download...\\a"
+#flush stdout
+#
 # The "gets" command fails with the following message, if running within
 # the ISE Project Navigator GUI.
 #
 #   channel "stdin" wasn't opened for reading
-
-if [catch {gets stdin ignore_me} msg] {
-  puts "\n\n *** $msg"
-  puts " *** Carrying on regardless ...\\n"
-  flush stdout
-}
-
+#
+#if [catch {gets stdin ignore_me} msg] {
+#  puts "\\n\\n *** $msg"
+#  puts " *** Carrying on regardless ...\\n"
+#  flush stdout
+#}
 # run impact script redirecting stdout
 # set impact_p [open "|impact -batch $impact_script_filename" r]
 # while {![eof $impact_p]} { gets $impact_p line ; puts $line }
 # close $impact
 
 # END
-''' %(syn_out_dir, tld_file, vhdl_files, constraints_file, \
-  dev_family, dev_device, dev_package, dev_speed)
+''' %('build', tld_file, vhdl_files, constraints_file, \
+      dev_family, dev_device, dev_package, dev_speed)
+    # NOTE: above we have used "build" directory and not syn_out_dir
 
     try:
         print 'Generating Xilinx ISE xtclsh script'
-        print 'WWWW', syn_out_dir
-        open(os.path.join(syn_out_dir,'xil_syn_script.tcl'),'w').write(content)
-        return 0
+        if os.path.isdir(syn_out_dir):
+            open(os.path.join(syn_out_dir,'xil_syn_script.tcl'),'w').write(content)
+        else:
+            print 'Problems in writing, you might have permission problems.'
     except:
         print 'Problems in writing, you might have permission problems.'
         return 1
 
-
-
-
+    return 0
 
 # check whether any VHDL file in folder "wd" has been modified
 def src_dir_modified(wd):
@@ -546,6 +668,7 @@ def dir_make_sure(wd):
 class mk_gui:
 
     # function to create a new file (unless it already exist)
+    # this action is triggered with the ENTER key
     def make_new_file(self, widget):
         full_path_file = self.dir_entry.get_text()
         if os.path.isdir(full_path_file):
@@ -568,9 +691,9 @@ class mk_gui:
         return 0
 
     # function to deleted file when top-level design file entry
-    # is in focus and ctrl+D is pressed
+    # is in focus and CTRL+D is pressed
     def entry_keypress(self, widget, event):
-        # detect ctrl+D key pressed
+        # detect CTRL+D key pressed
         if event.keyval in (gtk.keysyms.D, gtk.keysyms.d) and \
                  event.state & gtk.gdk.CONTROL_MASK:
             full_path_file = self.dir_entry.get_text()
@@ -805,15 +928,49 @@ class mk_gui:
         conf_file = os.path.join(os.environ['HOME'],'.boot')
         if os.path.isfile(conf_file):
             print 'Loading some parameters from local "~/.boot" file' 
-            #TODO: work in progress  
-            # maybe we can use this makefile: http://www.xess.com/appnotes/makefile.php
+            config = ConfigParser.ConfigParser()
+            config.readfp(open(conf_file))
+
+            _ma = config.get('Last parameters', 'manufacturer')
+            _fa = config.get('Last parameters', 'family')
+            _de = config.get('Last parameters', 'device')
+            _pa = config.get('Last parameters', 'package')
+            _sp = config.get('Last parameters', 'speed grade')
+
+            sim_opt = config.get('Last parameters', 'simulation options')
+            syn_tool_path = config.get('Last parameters', 'synthesis tool path')
+            syn_comm = config.get('Last parameters', 'synthesis command')
+
+            # this will set the device menu item to the one in the "~/.boot" file
+            for x,y in enumerate(self.ma.get_model()):
+                if y[0] == _ma:
+                    self.ma.set_active(x)
+            for x,y in enumerate(self.fa.get_model()):
+                if y[0] == _fa:
+                    self.fa.set_active(x)
+            for x,y in enumerate(self.de.get_model()):
+                if y[0] == _de:
+                    self.de.set_active(x)
+            for x,y in enumerate(self.pa.get_model()):
+                if y[0] == _pa:
+                    self.pa.set_active(x)
+            for x,y in enumerate(self.sp.get_model()):
+                if y[0] == _sp:
+                    self.sp.set_active(x)
+
+            # set synthesis variables like the ones in the "~/.boot" file
+            self.sim_opt_entry.set_text(sim_opt)
+            self.tool_path_entry.set_text(syn_tool_path)
+            self.tool_command_entry.set_text(syn_comm)
         return 0
 
     # Generate and save synthesis script
     def gen_syn_script_button_action(self, widget, action):
 
         # get information from Synthesis tab
-        tl   = self.dir_entry.get_text()
+        tl   = os.path.basename(self.dir_entry.get_text())
+        tl = tl.split('.')[0] # strip ".vhdl" extension
+
         #path = self.tool_path_entry.get_text()
         #cmd  = self.tool_command_entry.get_text()
 
@@ -823,10 +980,25 @@ class mk_gui:
         # this is where all synthesis files will go
         syn_out_dir = os.path.join(wd, 'build')
 
-        #TODO generate the vhdl file list to include
         # whole vhdl files to synthesize
-        files = ['pippo.vhdl','marta.vhd']
-        constraints_file = '../peppino.cfl'
+        # work out all files in the current working folder
+        files = glob.glob(os.path.join(wd,'*.vhd')) + \
+                         glob.glob(os.path.join(wd,'*.vhdl'))
+
+        # strip away path from each file
+        files = [os.path.basename(x) for x in files]
+
+        # take away all files with "_tb" in its name
+        for x in files:
+            if '_tb' in x: files.remove(x) 
+        
+        # constrain file
+        constraints_file = glob.glob(os.path.join(wd,'*.ucf'))
+
+        print 'Synthesis script about to ge generated.'
+        print 'top-level design:', tl
+        print 'vhdl file list:', files
+        print 'Constrains file:', constraints_file
 
         # get device parameters from Synthesis tab
         ma = self.ma.get_model()[self.ma.get_active()][0]
@@ -835,15 +1007,25 @@ class mk_gui:
         pa = self.pa.get_model()[self.pa.get_active()][0]
         sp = self.sp.get_model()[self.sp.get_active()][0]
 
-        # Generating synthesis script
+        # Creating synthesis folder
         if os.path.isdir(syn_out_dir):
-            gen_xil_syn_script(syn_out_dir,tl,files,constraints_file,fa,de,pa,sp)
-            print 'Xilinx synthesis script generated'
+            pass
         else:
             os.path.os.mkdir(syn_out_dir)
-            gen_xil_syn_script(syn_out_dir,tl,files,constraints_file,fa,de,pa,sp)
-            print 'Xilinx synthesis script generated'
 
+        # Generating and saving synthesis script
+        try:
+            if gen_xil_syn_script(syn_out_dir, tl, files, constraints_file, 
+                                  fa, de, pa, sp):
+                print 'Synthesis script generation process failed.'
+                return 1
+            print 'Xilinx synthesis script generated.'
+            # update the synthesis command field
+            self.tool_command_entry.set_text('xtclsh build/xil_syn_script.tcl')
+        except:
+            print 'Problems in saving the Xilinx synthesis script.'
+            print 'Maybe you have rights permission problems.'
+            return 1
         return 0
 
     # Start and stop the Synthesis of your vhdl design
@@ -853,6 +1035,8 @@ class mk_gui:
         tl = self.dir_entry.get_text()
         path = self.tool_path_entry.get_text()
         cmd = self.tool_command_entry.get_text()
+
+        wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
 
         # work in progress
         #self.on_warn('Sorry mate, this feature is not implemented yet.')
@@ -868,10 +1052,28 @@ class mk_gui:
                 print 'Synthesis process already running.'
                 return 0
             print 'Starting synthesis process.'
-            cmd = 'ls -la'
+            self.syn_textbuffer.set_text('Synthesis process output window.\n')
+            self.syn_textbuffer.insert_at_cursor('\n')
+
+            # delete ISE project
+            all_unwanted_fls = glob.glob(os.path.join(wd,'build','*.xise'))
+            for fl in all_unwanted_fls:
+                os.remove(fl)
+
+            # execute synthesis script
+            cmd ='cd src && '+ self.tool_command_entry.get_text()
             self.syn_p = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
+            self.syn_p.wait()
+            for line in self.syn_p.stdout.readlines():
+                self.syn_textbuffer.insert_at_cursor(line)
+
+
+
+
+            print self.syn_p.stdout.readline()
+
             # TODO work in progress
-            
+            # redirect tsdoutput to a synthesis text window
 
         elif action == 'stop':
             # if the synthesis process exists and is running kill it
@@ -901,7 +1103,7 @@ class mk_gui:
         combo_cell_text = gtk.CellRendererText()
         combo.pack_start(combo_cell_text, True)
         combo.add_attribute(combo_cell_text, "text", 0)
-        combo.set_size_request(130, -1)
+        combo.set_size_request(142, -1)
         return combo
  
     # filter device dropdown field
@@ -1080,8 +1282,10 @@ class mk_gui:
 
         # make directory entry
         self.dir_entry = gtk.Entry()
-        tooltips.set_tip(self.dir_entry, "Select top-level design file")
-        #self.dir_entry.set_editable(False)
+        tooltips.set_tip(self.dir_entry, 
+        'Here you select the top-level design file.\n\n'+
+        'ENTER:  create a new file.\n' +
+        'CTRL-D: delete current file.\n')
 
         # let's trigger an action when the text changes
         self.dir_entry.connect("changed", self.dir_entry_changed)
@@ -1091,7 +1295,7 @@ class mk_gui:
 
         # let's trigger a "delete file" action when top-level design file entry
         # is in focus and ctrl+D is pressed
-        #self.dir_entry.connect('key-press-event', self.entry_keypress)
+        self.dir_entry.connect('key-press-event', self.entry_keypress)
 
         # let's trigger a drop down menu action when the top-level design
         # file entry can show files and folders and down arrow is pressed
@@ -1169,12 +1373,12 @@ class mk_gui:
         Hbox_syn3.pack_start(self.tool_command_entry, True, True, 3)
         Hbox_syn5.pack_start(gtk.Label('Device type: '), False, False,3)
 
-        # populate FPGA family, device and package fiels
-        self.ma=self.make_dropdown_menu(dev_manufacturer)
-        self.fa=self.make_dropdown_menu(dev_family)
-        self.de=self.make_dropdown_menu(dev_device)
-        self.pa=self.make_dropdown_menu(dev_package)
-        self.sp=self.make_dropdown_menu(dev_speed)
+        # populate FPGA family, device and package fields
+        self.ma = self.make_dropdown_menu(dev_manufacturer)
+        self.fa = self.make_dropdown_menu(dev_family)
+        self.de = self.make_dropdown_menu(dev_device)
+        self.pa = self.make_dropdown_menu(dev_package)
+        self.sp = self.make_dropdown_menu(dev_speed)
         self.ma.set_active(0)
         self.fa.set_active(0)
         self.de.set_active(0)
@@ -1190,12 +1394,21 @@ class mk_gui:
         dev_lb1.set_use_markup(gtk.TRUE)
         dev_lb1.set_markup('<span size="8000"'+
                            'foreground="#B5B2AC">'+
-                           'manufacturer'+' '.join([' ' for i in range(19)])+\
-                           'family'      +' '.join([' ' for i in range(19+8)])+\
-                           'device'      +' '.join([' ' for i in range(19+8)])+\
-                           'package'     +' '.join([' ' for i in range(19+6)])+\
+                           'manufacturer'+' '.join([' ' for i in range(22)])+\
+                           'family'      +' '.join([' ' for i in range(22+8)])+\
+                           'device'      +' '.join([' ' for i in range(22+8)])+\
+                           'package'     +' '.join([' ' for i in range(22+6)])+\
                            'speed grade </span>')
         dev_fixed.put(dev_lb1,95,0)
+
+        # page synthesis output text area
+        syn_scroller = gtk.ScrolledWindow()
+        syn_scroller.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        syn_out = gtk.TextView()
+        syn_out.set_editable(True)
+        self.syn_textbuffer = syn_out.get_buffer()
+        syn_scroller.add(syn_out)
+        self.syn_textbuffer.set_text('ready to go!') 
 
         # put all together
         Hbox_syn5.pack_start(self.ma, False, False,3) # FPGA manufacturer
@@ -1227,12 +1440,11 @@ class mk_gui:
         stop_syn_button.connect("clicked", self.syn_button_action, 'stop')
         gen_syn_script_button.connect("clicked", self.gen_syn_script_button_action,'gen_script')
         Hbox_syn4.pack_start(gen_syn_script_button, False, False, 3)
-        Hbox_syn4.pack_start(stop_syn_button, False, False, 3)
         Hbox_syn4.pack_start(start_syn_button, False, False, 3)
+        Hbox_syn4.pack_start(stop_syn_button, False, False, 3)
         Vbox_syn1.pack_start(Hbox_syn4, False, False, 7)
+        Vbox_syn1.pack_start(syn_scroller, True, True)
 
-
-        
         # load the whole Synthesize tab content
         notebook.append_page(Vbox_syn1, gtk.Label('Synthesize'))
 
@@ -1309,12 +1521,12 @@ class mk_gui:
              # let's just pick last vhdl file is wd
             best_guess_vhdl_file = os.path.join(wd,vhdl_files[-1])
             self.dir_entry.set_text(best_guess_vhdl_file)
-            # possibly load the first "*_td.vhd*" file inside wd
-            possible_vhdl_td = glob.glob(os.path.join(wd,'*_td.vhd')) + \
-                               glob.glob(os.path.join(wd,'*_td.vhdl'))
+            # possibly load the first "*_top.vhd*" file inside wd
+            possible_vhdl_top = glob.glob(os.path.join(wd,'*_top.vhd')) + \
+                               glob.glob(os.path.join(wd,'*_top.vhdl'))
 
-            if len(possible_vhdl_td)!=0:
-                self.dir_entry.set_text(os.path.join(wd,possible_vhdl_td[0]))
+            if len(possible_vhdl_top)!=0:
+                self.dir_entry.set_text(os.path.join(wd,possible_vhdl_top[0]))
 
             # possibly load the first "*_tb.vhd*" file inside wd
             possible_vhdl_tb = glob.glob(os.path.join(wd,'*_tb.vhd')) + \
@@ -1333,16 +1545,17 @@ class mk_gui:
         # just copy content from the compile dir entry field
         self.top_level_label.set_text('Top-level design: ' + \
                                       self.dir_entry.get_text())
-        # default Xilinx XST synthesis tool path
-        res = call('which xst'.split())
-        if 0:
-            self.tool_path_entry.set_text(res)
-        else:
-            self.tool_path_entry.set_text('you do not seem to have Xilinx ISE installed')
 
+        #TODO fix this (read stdout)
+        # default Xilinx XST synthesis tool path
+        res = call('echo $XILINX_DIR'.split())
+        try:
+            self.tool_path_entry.set_text('source ' + res + '/settings32.sh')
+        except:
+            self.tool_path_entry.set_text('source /media/lin_sw/Xilinx/13.2/ISE_DS/settings32.sh')
 
         # default xst command
-        self.tool_command_entry.set_text('pwd')
+        self.tool_command_entry.set_text('None')
 
         # load some data from a possible ~/.boot local file
         self.load_configuration_locally()
@@ -1390,12 +1603,19 @@ if __name__ == "__main__":
                         action='store_const', const=True, default=False,
                         help='Download and install necessary packages \
                               (Internet connection required)')
+
+    parser.add_argument('-qs','--quick_start', required=False, dest='quick_start', 
+                        action='store_const', const=True, default=False,
+                        help='Build a quick and dirty VHDL working environment')
+
     args = parser.parse_args()
 
     # load stuff accordingly
     try:
         if args.build:
             build()
+        elif args.quick_start:
+            quick_start()
         else:
             # redirect standard output
             #sys.stdout = open('boot.log', 'w')

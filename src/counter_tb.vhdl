@@ -10,7 +10,7 @@ end entity;
 -- architecture
 architecture TB of counter_tb is
  
-    component counter_td
+    component counter_top
     port( cout:     out std_logic_vector(7 downto 0);
           up_down:  in std_logic;
           reset:    in std_logic;
@@ -24,7 +24,7 @@ architecture TB of counter_tb is
  
 begin
  
-    dut: counter_td port map (cout, up_down, reset, clk); 
+    dut: counter_top port map (cout, up_down, reset, clk); 
  
     process
     begin
