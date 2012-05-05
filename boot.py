@@ -35,7 +35,7 @@ from gtk import gdk
 pygtk.require('2.0')
 from subprocess import call, Popen, PIPE, STDOUT
 from multiprocessing import Process, Pipe
-import gobject
+import gobject, pango
 
 # Xilinx device data
 # # http://www.xilinx.com/support/index.htm
@@ -426,7 +426,7 @@ def gen_xil_syn_script(syn_out_dir, tld_file, vhdl_files, constraints_file,
     # formal vhdl file list
     vhdl_files = '[ list ../' + ' ../'.join(vhdl_files) + ' ]'
 
-    # format constraints file list and take the first one
+    # format constraints file list and take ONLY the first one
     if len(constraints_file) == 0:
         constraints_file = ''
     elif len(constraints_file)>0:
@@ -928,7 +928,7 @@ class mk_gui:
         return 0
 
     # if a local ~/.boot configuration file exist, load some parameters from it
-    def load_configuration_locally(self):
+    def load_local_configuration_file(self):
         conf_file = os.path.join(os.environ['HOME'],'.boot')
         if os.path.isfile(conf_file):
             print 'Loading some parameters from local "~/.boot" file' 
@@ -975,16 +975,12 @@ class mk_gui:
         tl   = os.path.basename(self.dir_entry.get_text())
         tl = tl.split('.')[0] # strip ".vhdl" extension
 
-        #path = self.tool_path_entry.get_text()
-        #cmd  = self.tool_command_entry.get_text()
-
         # working directory
         wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
 
         # this is where all synthesis files will go
         syn_out_dir = os.path.join(wd, 'build')
 
-        # whole vhdl files to synthesize
         # work out all files in the current working folder
         files = glob.glob(os.path.join(wd,'*.vhd')) + \
                          glob.glob(os.path.join(wd,'*.vhdl'))
@@ -1038,8 +1034,8 @@ class mk_gui:
 
         # get information from Synthesis tab
         tl = self.dir_entry.get_text()
-        path = self.tool_path_entry.get_text()
-        cmd = self.tool_command_entry.get_text()
+        syn_path = self.tool_path_entry.get_text()
+        syn_cmd = self.tool_command_entry.get_text()
         wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
 
         # work in progress warming window
@@ -1056,7 +1052,7 @@ class mk_gui:
                 print 'Synthesis process already running.'
                 return 0
             print 'Starting synthesis process.'
-            self.syn_textbuffer.set_text('Synthesis process output window.\n')
+            self.syn_textbuffer.set_text('Synthesis process output window.')
             self.syn_textbuffer.insert_at_cursor('\n') # this just add text
 
             # delete all ISE project inside "build"
@@ -1065,16 +1061,21 @@ class mk_gui:
             for fl in all_unwanted_fls:
                 os.remove(fl)
 
-            # execute synthesis script
-            cmd ='cd src && '+ self.tool_command_entry.get_text()
+            # execute the "source" command (using ".") and also
+            # change directory and run synthesis script
+            cmd = 'cd src && '+ syn_cmd
+            #cmd = syn_path + ' && cd src && '+ syn_cmd #TODO this maybe does not work
+            # it looks like the source command "." has no effect in this concatenation command
+
             self.syn_p = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
             
-            # lets now redirect syn_p stdout to a GUI methods using "gobject"
+            # lets now redirect syn_p stdout to a GUI method using "gobject"
             gobject.io_add_watch(self.syn_p.stdout,
                                  gobject.IO_IN,
                                  self.write_to_syn_output)
             # done !
 
+        # TODO this kill process does not seem to work
         elif action == 'stop':
             # if the synthesis process exists and is running kill it
             if type(self.syn_p) is Popen: # check data type
@@ -1089,11 +1090,27 @@ class mk_gui:
             print 'Wrong synthesis command.'
         return 0
 
+    # this method will style each line that gets displayed
+    # in the synthesis text output window
+    def beautifier(self, widget, _in):
+        position = self.syn_textbuffer.get_end_iter()
+
+        # let's filter the content and apply the many styles
+        if 'not found' in _in:
+            self.syn_textbuffer.insert_with_tags( position, _in, self.red_tag) # red font type
+        elif 'error' in _in:
+            self.syn_textbuffer.insert_with_tags( position, _in, self.red_tag, self.bold_tag) # red and bold font type
+        else:
+            self.syn_textbuffer.insert_with_tags( position, _in, self.grey_tag) # grey font type
+        return _in
+
     # this method allows data in to get directed to the synthesis output window
     def write_to_syn_output(self, fd, condition):
         if condition == gobject.IO_IN:
-            char = fd.read(1) # read one byte at the time
-            self.syn_textbuffer.insert_at_cursor(char)
+            #char = fd.read(1) # read one byte at the time
+            char = fd.readline()
+            char = self.beautifier(self, char)
+            #self.syn_textbuffer.insert_at_cursor(char)
             return True
         else:
             return False
@@ -1107,7 +1124,7 @@ class mk_gui:
             store.append(None, [x])
             #store.append(None, [x.split()[-1]])
 
-        # create a dropdown menu with tree in it
+        # create a drop-down menu with tree in it
         combo = gtk.ComboBox(store)
         combo_cell_text = gtk.CellRendererText()
         combo.pack_start(combo_cell_text, True)
@@ -1134,6 +1151,17 @@ class mk_gui:
 
         # set the first one 
         self.de.set_active(0)
+        return 0
+
+    # set boot to its default settings by deleting ~/.boot file
+    def set_default_boot(self, widget):
+        try:
+            homedir = os.path.expanduser("~")
+            os.remove(os.path.join(homedir,'.boot'))
+            print 'Local configuration file: ~/.boot deleted.'
+        except:
+            print 'Nothing to do.'
+        self.set_default_button_label.set_text('Done, you should now restart boot.')
         return 0
 
     # check for and new version of "boot" and download it
@@ -1381,7 +1409,7 @@ class mk_gui:
                         'synthesis your design.')
 
         Hbox_syn1.pack_start(self.top_level_label, False, False, 3)
-        Hbox_syn2.pack_start(gtk.Label('Synthesis tool path: '), False, False,3)
+        Hbox_syn2.pack_start(gtk.Label('Synthesis tool path setting command: '), False, False,3)
         #self.tool_path_entry.set_width_chars(90)
         Hbox_syn2.pack_start(self.tool_path_entry, True, True, 3)
         Hbox_syn3.pack_start(gtk.Label('Synthesis command: '), False, False,3)
@@ -1394,12 +1422,14 @@ class mk_gui:
         self.de = self.make_dropdown_menu(dev_device)
         self.pa = self.make_dropdown_menu(dev_package)
         self.sp = self.make_dropdown_menu(dev_speed)
+        # set the default device values
         self.ma.set_active(0)
         self.fa.set_active(0)
-        self.de.set_active(0)
-        self.pa.set_active(0)
+        #self.de.set_active(0)
+        self.pa.set_active(4)
         self.sp.set_active(3)
-        self.de.set_wrap_width(3) # make a two-column dropdown menu
+         # make some menu multi column
+        self.de.set_wrap_width(3)
         self.pa.set_wrap_width(7)
         self.sp.set_wrap_width(2)
 
@@ -1427,6 +1457,13 @@ class mk_gui:
         self.syn_textbuffer = syn_out.get_buffer()
         self.syn_scroller.add(syn_out)
         self.syn_textbuffer.set_text('ready to go!') 
+
+        # style the synthesis output text area
+        syn_out.modify_font(pango.FontDescription('monospace'))
+
+        #self.syn_textbuffer.set_use_markup(gtk.TRUE)
+        #self.syn_textbuffer.set_markup('<span size="11000" foreground="black"> hi !</span>')
+
     
         # let's keep the new text in "syn_textbuffer" always in view
         self.vadj = self.syn_scroller.get_vadjustment()
@@ -1504,8 +1541,13 @@ class mk_gui:
 
         # make Preferences tab
         check_updates_button = gtk.Button('Check for Updates')
+        set_default_button = gtk.Button('Set Default')
+        self.set_default_button_label = gtk.Label('Reset boot to its default configuration.')
         pr_Hbox1 = gtk.HBox(False, 0)
+        pr_Hbox2 = gtk.HBox(False, 0)
         pr_Hbox1.pack_start(check_updates_button, False, False, 7)
+        pr_Hbox2.pack_start(set_default_button, False, False, 7)
+        pr_Hbox2.pack_start(self.set_default_button_label, False, False, 2)
         self.pr_pbar = gtk.ProgressBar(adjustment=None) # progress bar for "Check for Updates"
         pr_Hbox1.pack_start(self.pr_pbar, False, False, 7)
         self.pr_pbar.set_size_request(400,-1)
@@ -1513,9 +1555,21 @@ class mk_gui:
         #self.pr_pbar.set_fraction(0.2) 
         pr_Vbox1 = gtk.VBox(False, 0)
         pr_Vbox1.pack_start(pr_Hbox1, False, False, 7)
+        pr_Vbox1.pack_start(pr_Hbox2, False, False, 7)
         notebook.append_page(pr_Vbox1, gtk.Label('Preferences'))
         check_updates_button.connect("clicked", self.update_boot)
-        tooltips.set_tip(check_updates_button, "Check and download a new version of boot")
+        set_default_button.connect("clicked", self.set_default_boot)
+        tooltips.set_tip(check_updates_button, "Download a new version of boot")
+        tooltips.set_tip(set_default_button, "Set boot to its default status")
+
+        # define the beautifier styles
+        self.blue_tag = self.syn_textbuffer.create_tag( "blue", foreground="#FFFF00", background="#0000FF")
+        self.it_tag = self.syn_textbuffer.create_tag( "it", style=pango.STYLE_ITALIC)
+        self.bold_tag = self.syn_textbuffer.create_tag( "bold", weight=pango.WEIGHT_BOLD)
+        self.red_tag = self.syn_textbuffer.create_tag( "red", foreground="#FF0000")
+        self.green_tag = self.syn_textbuffer.create_tag( "green", foreground="#21E01F")
+        self.grey_tag = self.syn_textbuffer.create_tag( "grey", foreground="#5E5E5E")
+
 
         ######## POPULATE COMPILE TAB ########
         # set current working directory as starting point and get
@@ -1564,23 +1618,27 @@ class mk_gui:
         self.browser.open(default_www)
 
         ######## POPULATE SYNTHESIZE TAB ########
+
         # just copy content from the compile dir entry field
         self.top_level_label.set_text('Top-level design: ' + \
                                       self.dir_entry.get_text())
 
-        #TODO fix this (read stdout)
-        # default Xilinx XST synthesis tool path
-        res = call('echo $XILINX_DIR'.split())
+        # try to guess the Xilinx xtclsh synthesis tool path by checking
+        # Xilinx ISE environment variables and generate a "source" command with "."
         try:
-            self.tool_path_entry.set_text('source ' + res + '/settings32.sh')
+            answer = os.environ.get("XILINX_DIR")
+            cmd = '. ' + answer + '/settings32.sh'
+            self.tool_path_entry.set_text(cmd)
         except:
-            self.tool_path_entry.set_text('source /opt/Xilinx/13.2/ISE_DS/settings32.sh')
+            # set the kind of default Xilinx ISE path (maybe we could try to search for it)
+            self.tool_path_entry.set_text('. /opt/Xilinx/13.2/ISE_DS/settings32.sh')
 
         # default xtclsh command
-        self.tool_command_entry.set_text('None')
+        self.tool_command_entry.set_text('Not set')
 
-        # load some data from a possible ~/.boot local file
-        self.load_configuration_locally()
+        # load data from a possible ~/.boot local file
+        # NOTE: this will overwrite lots of GUI variables.
+        self.load_local_configuration_file()
 
         # show all the widgets
         self.window.show_all()

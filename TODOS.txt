@@ -1,0 +1,9 @@
+# make a button in preference to set things as default. best way is maybe to
+  delete ~/.boot and in some how restart boot.
+
+# fix the problem with the python and environment variables which do not allow 
+  the use of the "source" command.
+
+# make a beautify function that colors the synthesis text output and maybe the
+  compile text output too. All with the same function.
+
