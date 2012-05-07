@@ -37,6 +37,8 @@ from subprocess import call, Popen, PIPE, STDOUT
 from multiprocessing import Process, Pipe
 import gobject, pango
 
+gobject.threads_init()
+
 # Xilinx device data
 # # http://www.xilinx.com/support/index.htm
 dev_manufacturer  = ['Xilinx', 'Altera', 'Actel'] 
@@ -1044,7 +1046,7 @@ class mk_gui:
         syn_cmd = self.tool_command_entry.get_text()
         wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
 
-        # work in progress warming window
+        # work in progress warning window
         #self.on_warn('Sorry mate, this feature is not implemented yet.')
 
         # execute stuff
@@ -1053,9 +1055,9 @@ class mk_gui:
             #save some parameters on local "~/.boot" file
             self.save_configuration_locally()
             
-            # begin synthesis process unless it has been already started
-            if self.syn_p!=None and self.syn_p.poll() ==None:
-                print 'Synthesis process already running.'
+            # if the synthesis process exist already and has not terminated, exit
+            if self.syn_p!=None and self.syn_p.returncode == None:
+                print 'Synthesis process not terminated yet. Exiting'
                 return 0
             print 'Starting synthesis process.'
             self.syn_textbuffer.set_text('Synthesis process output window.')
@@ -1073,27 +1075,37 @@ class mk_gui:
 
             # import and apply the new environment values using "os.environ"
             for line in proc.stdout:
-                (key, _, value) = line.partition("=")
+                (key, _, value) = line.rstrip('\n').partition("=")
                 os.environ[key] = value
-            proc.communicate()
+            proc.communicate() # this will wait for the process "proc" to terminate
             #pprint.pprint(dict(os.environ))
 
             # change directory and run synthesis script
             cmd = 'cd src/; '+ syn_cmd
             self.syn_p = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
+            #self.syn_p = Popen(['ls','-la'], stdout=PIPE, stderr=STDOUT)
+            print 'New Synthesis process ID:',self.syn_p.pid
 
-            # lets now redirect "self.syn_p" stdout to a GUI method using "gobject"
-            gobject.io_add_watch(self.syn_p.stdout,
-                                 gobject.IO_IN,
-                                 self.write_to_syn_output)
+            # let's now redirect "self.syn_p" stdout to a GUI method using "gobject"
+            # let's deleted it if it already exist
+            if self.g_syn_id != None:
+                gobject.source_remove(self.g_syn_id)
+            self.g_syn_id = gobject.io_add_watch(self.syn_p.stdout,
+                                                 gobject.IO_IN,
+                                                 self.write_to_syn_output)           
             # done !
 
-        # TODO this kill process does not seem to work
         elif action == 'stop':
             # if the synthesis process exists and is running kill it
-            if type(self.syn_p) is Popen: # check data type
+            if type(self.syn_p) is Popen: # check the existence of synthesis process
                 try:
-                    self.syn_p.kill()
+                    print 'Current Synthesis process ID:',self.syn_p.pid
+                    self.syn_p.kill() # kill synthesis process
+
+                    # delete gobject for synthesis process communication
+                    if self.g_syn_id != None:
+                        gobject.source_remove(self.g_syn_id)
+
                     while self.syn_p.poll() == None:
                         time.sleep(0.2)
                     print 'Synthesis process stopped.'
@@ -1101,8 +1113,6 @@ class mk_gui:
                     print 'Synthesis process already killed.'
         else:
             print 'Wrong synthesis command.'
-
-        print 'HHHHHHHHHHHHHH'
         return 0
 
 
@@ -1528,6 +1538,7 @@ class mk_gui:
         stop_syn_button = gtk.Button('Stop Synthesis')
         gen_syn_script_button = gtk.Button('Generate Script')
         self.syn_p = None # this is the synthesize process handler
+        self.g_syn_id = None # this is the gobject for communication with the synthesis window
         start_syn_button.connect("clicked", self.syn_button_action, 'start')
         stop_syn_button.connect("clicked", self.syn_button_action, 'stop')
         gen_syn_script_button.connect("clicked", self.gen_syn_script_button_action,'gen_script')
