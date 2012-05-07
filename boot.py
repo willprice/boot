@@ -29,7 +29,7 @@ __version__ = 0.16
 __author__ = 'Fabrizio Tappero'
 
 import pygtk, gtk, gobject, glob, os, time, sys, argparse
-import ConfigParser, webkit, httplib
+import ConfigParser, webkit, httplib, pprint
 
 from gtk import gdk
 pygtk.require('2.0')
@@ -1029,6 +1029,12 @@ class mk_gui:
             return 1
         return 0
 
+
+
+
+
+
+
     # Start and stop the Synthesis of your vhdl design
     def syn_button_action(self, widget, action):
 
@@ -1062,14 +1068,21 @@ class mk_gui:
                 os.remove(fl)
 
             # execute the "source" command (using ".") and also
-            # change directory and run synthesis script
-            cmd = 'cd src && '+ syn_cmd
-            #cmd = syn_path + ' && cd src && '+ syn_cmd #TODO this maybe does not work
-            # it looks like the source command "." has no effect in this concatenation command
+            command = ['bash','-c',syn_path + '>>/dev/null; env']
+            proc = Popen(command, stdout = PIPE)
 
+            # import and apply the new environment values using "os.environ"
+            for line in proc.stdout:
+                (key, _, value) = line.partition("=")
+                os.environ[key] = value
+            proc.communicate()
+            #pprint.pprint(dict(os.environ))
+
+            # change directory and run synthesis script
+            cmd = 'cd src/; '+ syn_cmd
             self.syn_p = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
-            
-            # lets now redirect syn_p stdout to a GUI method using "gobject"
+
+            # lets now redirect "self.syn_p" stdout to a GUI method using "gobject"
             gobject.io_add_watch(self.syn_p.stdout,
                                  gobject.IO_IN,
                                  self.write_to_syn_output)
@@ -1088,7 +1101,21 @@ class mk_gui:
                     print 'Synthesis process already killed.'
         else:
             print 'Wrong synthesis command.'
+
+        print 'HHHHHHHHHHHHHH'
         return 0
+
+
+
+
+
+
+
+
+
+
+
+
 
     # this method will style each line that gets displayed
     # in the synthesis text output window
@@ -1098,10 +1125,16 @@ class mk_gui:
         # let's filter the content and apply the many styles
         if 'not found' in _in:
             self.syn_textbuffer.insert_with_tags( position, _in, self.red_tag) # red font type
-        elif 'error' in _in:
+        elif 'error' in _in or 'ERROR' in _in:
             self.syn_textbuffer.insert_with_tags( position, _in, self.red_tag, self.bold_tag) # red and bold font type
+        elif 'warning' in _in or 'WARNING' in _in:
+            self.syn_textbuffer.insert_with_tags( position, _in, self.orange_tag) # orange font type
+        elif 'successful' in _in:
+            self.syn_textbuffer.insert_with_tags( position, _in, self.green_tag) # green font type
+        elif ('Summary' in _in) or ('Report' in _in):
+            self.syn_textbuffer.insert_with_tags( position, _in, self.bold_tag) # bold font type
         else:
-            self.syn_textbuffer.insert_with_tags( position, _in, self.grey_tag) # grey font type
+            self.syn_textbuffer.insert_with_tags( position, _in, self.gray_tag) # gray font type
         return _in
 
     # this method allows data in to get directed to the synthesis output window
@@ -1399,8 +1432,8 @@ class mk_gui:
         Vbox_syn1 = gtk.VBox(False, 0)
         Vbox_syn1.set_border_width(10)
         self.top_level_label = gtk.Label() # top-level design label
-        tooltips.set_tip(self.top_level_label, 'This is your top-level design'+
-                        ' file. You can edit this in the Compile tab.')
+        tooltips.set_tip(self.top_level_label, 'This is your top-level design '+
+                        'file. You can edit this in the Compile tab.')
         self.tool_path_entry = gtk.Entry() # synthesis tool path
         tooltips.set_tip(self.tool_path_entry, 'This is the path where the '+
                         'synthesis tools are installed.')
@@ -1453,13 +1486,13 @@ class mk_gui:
         syn_out = gtk.TextView()
         syn_out.set_left_margin (10);
         syn_out.set_right_margin (10);
-        #syn_out.set_editable(True)
+        syn_out.set_editable(False)
         self.syn_textbuffer = syn_out.get_buffer()
         self.syn_scroller.add(syn_out)
         self.syn_textbuffer.set_text('ready to go!') 
 
         # style the synthesis output text area
-        syn_out.modify_font(pango.FontDescription('monospace'))
+        syn_out.modify_font(pango.FontDescription('monospace 9'))
 
         #self.syn_textbuffer.set_use_markup(gtk.TRUE)
         #self.syn_textbuffer.set_markup('<span size="11000" foreground="black"> hi !</span>')
@@ -1568,7 +1601,9 @@ class mk_gui:
         self.bold_tag = self.syn_textbuffer.create_tag( "bold", weight=pango.WEIGHT_BOLD)
         self.red_tag = self.syn_textbuffer.create_tag( "red", foreground="#FF0000")
         self.green_tag = self.syn_textbuffer.create_tag( "green", foreground="#21E01F")
-        self.grey_tag = self.syn_textbuffer.create_tag( "grey", foreground="#5E5E5E")
+        self.gray_tag = self.syn_textbuffer.create_tag( "gray", foreground="#5E5E5E")
+        self.orange_tag = self.syn_textbuffer.create_tag( "orange", foreground="#FF8804")
+
 
 
         ######## POPULATE COMPILE TAB ########
@@ -1627,11 +1662,12 @@ class mk_gui:
         # Xilinx ISE environment variables and generate a "source" command with "."
         try:
             answer = os.environ.get("XILINX_DIR")
-            cmd = '. ' + answer + '/settings32.sh'
+            cmd = 'source ' + answer + '/settings64.sh'
             self.tool_path_entry.set_text(cmd)
+            print 'Xilinx ISE software too detected at:', answer
         except:
             # set the kind of default Xilinx ISE path (maybe we could try to search for it)
-            self.tool_path_entry.set_text('. /opt/Xilinx/13.2/ISE_DS/settings32.sh')
+            self.tool_path_entry.set_text('source /opt/Xilinx/13.2/ISE_DS/settings64.sh')
 
         # default xtclsh command
         self.tool_command_entry.set_text('Not set')
