@@ -29,7 +29,7 @@ __version__ = 0.16
 __author__ = 'Fabrizio Tappero'
 
 import pygtk, gtk, gobject, glob, os, time, sys, argparse
-import ConfigParser, webkit, httplib, pprint
+import ConfigParser, webkit, httplib, pprint, shutil
 
 from gtk import gdk
 pygtk.require('2.0')
@@ -296,7 +296,7 @@ net a<2>           loc = p46;
     return 0
 
 # compile and simulate VHDL project in ITS OWN PROCESS (notice that this is not
-# done in a thread but instead in a completely indipended process)
+# done in a thread but instead in a completely Independence process)
 # this process/function is written in this way because we want it to be ready
 # to run whenever the user saves/modifies any of the VHDL source files.
 # in future rework, the use of gobject.timeout_add() is maybe advisable. More info:
@@ -306,7 +306,6 @@ def comp_and_sim_proc(conn):
     # some local variables (remember that we are in an independent process)
     COMPILATION_ERROR = False
     GTK_ALREADY_UP = False
-    _border = '-'.join(['-' for num in range(35)])
 
     # let's keep this process running in the background
     while True:
@@ -323,7 +322,7 @@ def comp_and_sim_proc(conn):
 
                 # clean up GUI
                 conn.send('CLEAR ALL\n')
-                conn.send(_border + '  begin compiling  ' + _border + '\n')
+                conn.send('Begin compiling\n')
 
                 # clean all GHDL files
                 my_cmd = 'ghdl -clean --workdir=' + wd + '/build'
@@ -365,7 +364,7 @@ def comp_and_sim_proc(conn):
                 if not COMPILATION_ERROR:
                     
                     # notify the beginning of a simulation
-                    conn.send(_border + '  begin simulation ' + _border + '\n')
+                    conn.send('Begin simulation\n')
 
                     # move the executable tl_entity in folder "/build"
                     print 'Moving simulation file:', tl_entity
@@ -416,7 +415,7 @@ def comp_and_sim_proc(conn):
       
                 # done
                 COMPILATION_ERROR = False
-                conn.send(_border + '   end processing   ' + _border + '\n')                                              
+                conn.send('End processing\n')                                              
         except:
             pass
     return 0
@@ -623,24 +622,19 @@ def dir_make_sure(wd):
         if os.path.isdir(os.path.join(wd,'build'))==False:
             try:
                 os.path.os.mkdir(os.path.join(wd,'build'))
-                os.path.os.mkdir(os.path.join(wd,'build','out'))
                 print '"build" directory created.'
-
             except:
                 print 'Hum... you might not have writing permissions \
                        for the folder you are in... Exiting.'
                 return False
         else:
-            # delete all files inside the "build" directory
-            for root, dirs, fls in os.walk(os.path.join(wd,'build')):
-                for fl in fls:
-                    os.remove(os.path.join(wd,'build',fl))
-            print 'All files inside "build" were deleted.'
-            # delete all files inside the "build/out" directory
-            for root, dirs, fls in os.walk(os.path.join(wd,'build','out')):
-                for fl in fls:
-                    os.remove(os.path.join(wd,'build','out',fl))
-            print 'All files inside "build/out" were deleted.'
+            # delete all files and folders inside the "build" directory
+            for root, dirs, files in os.walk(os.path.join(wd,'build')):
+                for f in files:
+                    os.unlink(os.path.join(root, f))
+                for d in dirs:
+                    shutil.rmtree(os.path.join(root, d))
+            print 'All files and folders inside "build" were deleted.'
 
         # save gtkwave configuration file inside "build" folder
         print 'Creating gtkwave configuration file inside "build" folder'
@@ -854,8 +848,7 @@ class mk_gui:
         
         # update compiling tab
         val = self.comp_comm_i.recv()
-        self.txt.set_markup(self.txt.get_text() +
-                       '<span size="11000" foreground="black">'+ val +'</span>')
+        self.comp_textbuffer.insert_at_cursor(val)
         if 'begin compiling'in val:
             self.img_y.set_sensitive(False) # green light off
             self.img_n.set_sensitive(True)  # red light one
@@ -870,9 +863,7 @@ class mk_gui:
             self.img_n.set_sensitive(False) # red light off
             print 'Compiled successfully.'
         elif 'CLEAR ALL' in val:
-            # clean compiling tab area
-            pass
-            self.txt.set_markup('<span size="11000" foreground="black"></span>')
+            self.comp_textbuffer.set_text('') # clear screen
         return True
 
     # general purpose OK CANCEL message dialog
@@ -1031,12 +1022,6 @@ class mk_gui:
             return 1
         return 0
 
-
-
-
-
-
-
     # Start and stop the Synthesis of your vhdl design
     def syn_button_action(self, widget, action):
 
@@ -1063,8 +1048,9 @@ class mk_gui:
             self.syn_textbuffer.set_text('Synthesis process output window.')
             self.syn_textbuffer.insert_at_cursor('\n') # this just add text
 
-            # delete all ISE project inside "build"
-            # this will guarantee that synthesis will start from the beginning
+            # delete ISE project inside the folder "build"
+            # this will most probably guarantee that synthesis will start 
+            # from the beginning
             all_unwanted_fls = glob.glob(os.path.join(wd,'build','*.xise'))
             for fl in all_unwanted_fls:
                 os.remove(fl)
@@ -1082,8 +1068,7 @@ class mk_gui:
 
             # change directory and run synthesis script
             cmd = 'cd src/; '+ syn_cmd
-            self.syn_p = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
-            #self.syn_p = Popen(['ls','-la'], stdout=PIPE, stderr=STDOUT)
+            self.syn_p = Popen(cmd, bufsize=-1, shell=True, stdout=PIPE, stderr=STDOUT)
             print 'New Synthesis process ID:',self.syn_p.pid
 
             # let's now redirect "self.syn_p" stdout to a GUI method using "gobject"
@@ -1115,18 +1100,6 @@ class mk_gui:
             print 'Wrong synthesis command.'
         return 0
 
-
-
-
-
-
-
-
-
-
-
-
-
     # this method will style each line that gets displayed
     # in the synthesis text output window
     def beautifier(self, widget, _in):
@@ -1134,17 +1107,17 @@ class mk_gui:
 
         # let's filter the content and apply the many styles
         if 'not found' in _in:
-            self.syn_textbuffer.insert_with_tags( position, _in, self.red_tag) # red font type
+            self.syn_textbuffer.insert_with_tags(position, _in, self.red_tag) # red font type
         elif 'error' in _in or 'ERROR' in _in:
-            self.syn_textbuffer.insert_with_tags( position, _in, self.red_tag, self.bold_tag) # red and bold font type
+            self.syn_textbuffer.insert_with_tags(position, _in, self.red_tag, self.bold_tag) # red and bold font type
         elif 'warning' in _in or 'WARNING' in _in:
-            self.syn_textbuffer.insert_with_tags( position, _in, self.orange_tag) # orange font type
+            self.syn_textbuffer.insert_with_tags(position, _in, self.orange_tag) # orange font type
         elif 'successful' in _in:
-            self.syn_textbuffer.insert_with_tags( position, _in, self.green_tag) # green font type
+            self.syn_textbuffer.insert_with_tags(position, _in, self.green_tag) # green font type
         elif ('Summary' in _in) or ('Report' in _in):
-            self.syn_textbuffer.insert_with_tags( position, _in, self.bold_tag) # bold font type
+            self.syn_textbuffer.insert_with_tags(position, _in, self.bold_tag) # bold font type
         else:
-            self.syn_textbuffer.insert_with_tags( position, _in, self.gray_tag) # gray font type
+            self.syn_textbuffer.insert_with_tags(position, _in, self.gray_tag) # gray font type
         return _in
 
     # this method allows data in to get directed to the synthesis output window
@@ -1278,6 +1251,12 @@ class mk_gui:
         self.vadj.set_value(self.vadj.upper-self.vadj.page_size)
         self.syn_scroller.set_vadjustment(self.vadj)
 
+    # re-scroll the compile text output window so that
+    # new text is always shown
+    def comp_rescroll(self, widget):
+        self.comp_vadj.set_value(self.comp_vadj.upper-self.comp_vadj.page_size)
+        self.comp_scroller.set_vadjustment(self.comp_vadj)
+
     # constructor for the whole GUI
     def __init__(self):
 
@@ -1345,6 +1324,10 @@ class mk_gui:
         # let's trigger an action when the check box changes
         self.chk1.connect("clicked", self.run_compile_and_sim, False)
 
+
+
+
+
         # make compile error notification area
         self.txt = gtk.Label()
         comp_layout = gtk.Layout(None, None)
@@ -1365,6 +1348,32 @@ class mk_gui:
         compile_output = 'Select your vhdl top level design file.'
         self.txt.set_markup('<span size="11000" foreground="black">'+ \
                              compile_output +'</span>')
+
+
+
+
+
+
+        # compile output text area
+        self.comp_scroller = gtk.ScrolledWindow()
+        self.comp_scroller.set_shadow_type(gtk.SHADOW_ETCHED_IN)
+        self.comp_scroller.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        comp_out = gtk.TextView()
+        comp_out.set_left_margin (10);
+        comp_out.set_right_margin (10);
+        comp_out.set_editable(False)
+        self.comp_textbuffer = comp_out.get_buffer()
+        self.comp_scroller.add(comp_out)
+        self.comp_textbuffer.set_text('Select your VHDL top-level design file.\n'+ \
+                                       'If you are interested in running a simulation of your design, select '+ \
+                                        'instead your test-bench file.') 
+
+        # style the synthesis output text area
+        comp_out.modify_font(pango.FontDescription('monospace 9'))
+    
+        # let's keep the new text in "comp_textbuffer" always in view
+        self.comp_vadj = self.comp_scroller.get_vadjustment()
+        self.comp_vadj.connect('changed',self.comp_rescroll)
 
         # make directory entry
         self.dir_entry = gtk.Entry()
@@ -1431,7 +1440,9 @@ class mk_gui:
         #Vbox1.pack_start(separator, False, False, 10)
 
         # add compile notification area to the compile tab
-        Vbox1.pack_start(comp_table, True, True, 10)
+        #Vbox1.pack_start(comp_table, True, True, 10)
+        Vbox1.pack_start(self.comp_scroller, True, True, 10)
+
 
         # make Synthesize tab 
         Hbox_syn1 = gtk.HBox(False, 0)
@@ -1503,10 +1514,6 @@ class mk_gui:
 
         # style the synthesis output text area
         syn_out.modify_font(pango.FontDescription('monospace 9'))
-
-        #self.syn_textbuffer.set_use_markup(gtk.TRUE)
-        #self.syn_textbuffer.set_markup('<span size="11000" foreground="black"> hi !</span>')
-
     
         # let's keep the new text in "syn_textbuffer" always in view
         self.vadj = self.syn_scroller.get_vadjustment()
