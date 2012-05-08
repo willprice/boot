@@ -818,13 +818,9 @@ class mk_gui:
             else:
                 print '# inactive'
         else:
-            compile_output = 'Please select your vhdl top level design file.'
             self.chk1.set_sensitive(False)
             self.img_y.set_sensitive(False)
             self.img_n.set_sensitive(False)
-
-        self.txt.set_markup('<span size="11000" foreground="black">'+
-                             compile_output +'</span>') 
         return 0
 
     # delete and kill main window
@@ -848,8 +844,9 @@ class mk_gui:
         
         # update compiling tab
         val = self.comp_comm_i.recv()
-        self.comp_textbuffer.insert_at_cursor(val)
-        if 'begin compiling'in val:
+        #self.comp_textbuffer.insert_at_cursor(val)
+        self.comp_beautifier(self, val)
+        if 'Begin compiling'in val:
             self.img_y.set_sensitive(False) # green light off
             self.img_n.set_sensitive(True)  # red light one
             GUI_COMPILATION_ERROR = False
@@ -858,7 +855,7 @@ class mk_gui:
             self.img_n.set_sensitive(True)  # red light one
             GUI_COMPILATION_ERROR = True
             print 'Compilation error.'
-        elif  'end processing'in val and (not GUI_COMPILATION_ERROR):
+        elif  'End processing'in val and (not GUI_COMPILATION_ERROR):
             self.img_y.set_sensitive(True)  # green light on
             self.img_n.set_sensitive(False) # red light off
             print 'Compiled successfully.'
@@ -1100,32 +1097,56 @@ class mk_gui:
             print 'Wrong synthesis command.'
         return 0
 
-    # this method will style each line that gets displayed
-    # in the synthesis text output window
-    def beautifier(self, widget, _in):
+    # this method will style each line that gets displayed in the
+    # compile text output window
+    def comp_beautifier(self, widget, _in):
+        position = self.comp_textbuffer.get_end_iter()
+
+        # let's filter the content and apply the many styles
+        if ('not found' in _in) or ('error' in _in):
+            self.comp_textbuffer.insert_with_tags(position, _in, self.comp_red_tag) # red font type
+        elif ('ERROR' in _in):
+            self.comp_textbuffer.insert_with_tags(position, _in, self.comp_red_tag) # red and bold font type
+        elif ('warning' in _in) or ('WARNING' in _in):
+            self.comp_textbuffer.insert_with_tags(position, _in, self.comp_orange_tag) # orange font type
+        elif ('successful' in _in) or ('Begin compiling' in _in):
+            self.comp_textbuffer.insert_with_tags(position, _in, self.comp_green_tag) # green font type
+        elif ('End processing' in _in) or ('Begin simulation' in _in) :
+            self.comp_textbuffer.insert_with_tags(position, _in, self.comp_green_tag) # green font type
+        elif ('Summary' in _in) or ('Report' in _in):
+            self.comp_textbuffer.insert_with_tags(position, _in, self.comp_bold_tag) # bold font type
+        else:
+           self.comp_textbuffer.insert_with_tags(position, _in, self.comp_gray_tag) # gray font type
+        return 0
+
+    # this method will style each line that gets displayed in the
+    # synthesis text output window 
+    def syn_beautifier(self, widget, _in):
         position = self.syn_textbuffer.get_end_iter()
 
         # let's filter the content and apply the many styles
-        if 'not found' in _in:
-            self.syn_textbuffer.insert_with_tags(position, _in, self.red_tag) # red font type
-        elif 'error' in _in or 'ERROR' in _in:
-            self.syn_textbuffer.insert_with_tags(position, _in, self.red_tag, self.bold_tag) # red and bold font type
-        elif 'warning' in _in or 'WARNING' in _in:
-            self.syn_textbuffer.insert_with_tags(position, _in, self.orange_tag) # orange font type
-        elif 'successful' in _in:
-            self.syn_textbuffer.insert_with_tags(position, _in, self.green_tag) # green font type
+        if ('not found' in _in) or ('error' in _in):
+            self.syn_textbuffer.insert_with_tags(position, _in, self.syn_red_tag) # red font type
+        elif ('ERROR' in _in):
+            self.syn_textbuffer.insert_with_tags(position, _in, self.syn_red_tag) # red and bold font type
+        elif ('warning' in _in) or ('WARNING' in _in):
+            self.syn_textbuffer.insert_with_tags(position, _in, self.syn_orange_tag) # orange font type
+        elif ('successful' in _in) or ('Begin compiling' in _in):
+            self.syn_textbuffer.insert_with_tags(position, _in, self.syn_green_tag) # green font type
+        elif ('End processing' in _in) or ('Begin simulation' in _in) :
+            self.syn_textbuffer.insert_with_tags(position, _in, self.syn_green_tag) # green font type
         elif ('Summary' in _in) or ('Report' in _in):
-            self.syn_textbuffer.insert_with_tags(position, _in, self.bold_tag) # bold font type
+            self.syn_textbuffer.insert_with_tags(position, _in, self.syn_bold_tag) # bold font type
         else:
-            self.syn_textbuffer.insert_with_tags(position, _in, self.gray_tag) # gray font type
-        return _in
+            self.syn_textbuffer.insert_with_tags(position, _in, self.syn_gray_tag) # gray font type
+        return 0
 
     # this method allows data in to get directed to the synthesis output window
     def write_to_syn_output(self, fd, condition):
         if condition == gobject.IO_IN:
             #char = fd.read(1) # read one byte at the time
             char = fd.readline()
-            char = self.beautifier(self, char)
+            self.syn_beautifier(self, char)
             #self.syn_textbuffer.insert_at_cursor(char)
             return True
         else:
@@ -1323,36 +1344,6 @@ class mk_gui:
                                     'your design every time a file is modified')
         # let's trigger an action when the check box changes
         self.chk1.connect("clicked", self.run_compile_and_sim, False)
-
-
-
-
-
-        # make compile error notification area
-        self.txt = gtk.Label()
-        comp_layout = gtk.Layout(None, None)
-        comp_layout.set_size(650, 800)
-        comp_layout.add(self.txt)
-
-        vScrollbar = gtk.VScrollbar(None)
-        comp_table = gtk.Table(1, 2, False)
-        comp_table.attach(vScrollbar, 1, 2, 0, 1, gtk.FILL|gtk.SHRINK,
-                     gtk.FILL|gtk.SHRINK, 0, 2)
-        comp_table.attach(comp_layout, 0, 1, 0, 1, gtk.FILL|gtk.EXPAND,
-	                 gtk.FILL|gtk.EXPAND, 0, 2)
-
-        vAdjust = comp_layout.get_vadjustment()
-        vScrollbar.set_adjustment(vAdjust)
-
-        self.txt.set_use_markup(gtk.TRUE)
-        compile_output = 'Select your vhdl top level design file.'
-        self.txt.set_markup('<span size="11000" foreground="black">'+ \
-                             compile_output +'</span>')
-
-
-
-
-
 
         # compile output text area
         self.comp_scroller = gtk.ScrolledWindow()
@@ -1613,16 +1604,17 @@ class mk_gui:
         tooltips.set_tip(check_updates_button, "Download a new version of boot")
         tooltips.set_tip(set_default_button, "Set boot to its default status")
 
-        # define the beautifier styles
-        self.blue_tag = self.syn_textbuffer.create_tag( "blue", foreground="#FFFF00", background="#0000FF")
-        self.it_tag = self.syn_textbuffer.create_tag( "it", style=pango.STYLE_ITALIC)
-        self.bold_tag = self.syn_textbuffer.create_tag( "bold", weight=pango.WEIGHT_BOLD)
-        self.red_tag = self.syn_textbuffer.create_tag( "red", foreground="#FF0000")
-        self.green_tag = self.syn_textbuffer.create_tag( "green", foreground="#21E01F")
-        self.gray_tag = self.syn_textbuffer.create_tag( "gray", foreground="#5E5E5E")
-        self.orange_tag = self.syn_textbuffer.create_tag( "orange", foreground="#FF8804")
+        # define the beautifier styles for compile text output window
+        self.comp_bold_tag = self.comp_textbuffer.create_tag( "bold", weight=pango.WEIGHT_BOLD)
+        self.comp_red_tag = self.comp_textbuffer.create_tag( "red", foreground="#FF0000")
+        self.comp_green_tag = self.comp_textbuffer.create_tag( "green", foreground="#21E01F")
+        self.comp_gray_tag =self.comp_textbuffer.create_tag( "gray", foreground="#5E5E5E")
 
-
+        # define the beautifier styles for the synthesis text output window
+        self.syn_bold_tag = self.syn_textbuffer.create_tag( "bold", weight=pango.WEIGHT_BOLD)
+        self.syn_red_tag = self.syn_textbuffer.create_tag( "red", foreground="#FF0000")
+        self.syn_green_tag = self.syn_textbuffer.create_tag( "green", foreground="#21E01F")
+        self.syn_gray_tag = self.syn_textbuffer.create_tag( "gray", foreground="#5E5E5E")
 
         ######## POPULATE COMPILE TAB ########
         # set current working directory as starting point and get
