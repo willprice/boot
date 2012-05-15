@@ -13,3 +13,5 @@
 # redesign the compile semaphore icons and use a progress bar.
 
 # add a compile button.
+
+# add a button to open the Synthesis Report file counter_top.syr

@@ -14,7 +14,7 @@ end entity;
 
 -- architecture
 architecture rtl of counter_top is
-    signal count :std_logic_vector (7 downto 0);
+    signal count :std_logic_vector (7 downto 0); 
     begin
         process (clk, reset) begin 
             if (reset = '1') then  
