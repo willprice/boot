@@ -4,14 +4,15 @@
 # fix the problem with the python and environment variables which do not allow  DONE
   the use of the "source" command.
 
-# make a beautify function that colors the synthesis text output as well as the
-  compile text output too. All with the same function.
+# make a beautify function that colors the synthesis text output as well as the DONE
+  compile text output too.
 
-# redesign the synthesis start and stop process handling because it looks like 
+# redesign the synthesis start and stop process handling because it looks like  DONE
   processing power is used when the synthesis is finished.
 
-# redesign the compile semaphore icons and use a progress bar.
+# redesign the compile semaphore icons and use a progress bar.                  DONE
 
 # add a compile button.
 
-# add a button to open the Synthesis Report file counter_top.syr
+# add a button or text to open the Synthesis Report file counter_top.syr
+
