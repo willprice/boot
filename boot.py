@@ -25,7 +25,7 @@ License:  GNU General Public License
 #    You should have received a copy of the GNU Lesser General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-__version__ = 0.17
+__version__ = 0.18
 __author__ = 'Fabrizio Tappero'
 
 import pygtk, gtk, gobject, glob, os, time, sys, argparse
@@ -260,10 +260,18 @@ end;
 '''
 
     content_fl3 = '''##### file: board.ucf #####
-# Xula-200 board. Spartan3A XC3S200A, VQ100, speed grade: -4
-# (C) 1997-2010 - X Engineering Software Systems Corp.
+# This is a simplified version of a .ucf file that can be used
+# for the Xula-200 board. 
+# The Xula-200 board has a Spartan3A XC3S200A, VQ100, speed grade: -4
 
+# used by counter_top.vhdl
 net fpga_clk       loc = p43;
+net cin            loc = p50;
+net reset          loc = p52;
+net up_down        loc = p56;
+net cout<0>        loc = p57;
+net cout<1>        loc = p61;
+net cout<2>        loc = p62;
 
 net sdram_clk      loc = p40;
 net sdram_clk_fb   loc = p41;
@@ -271,6 +279,7 @@ net ras_n          loc = p59;
 net cas_n          loc = p60;
 net we_n           loc = p64;
 net bs             loc = p53;
+
 net a<0>           loc = p49;
 net a<1>           loc = p48;
 net a<2>           loc = p46;
@@ -279,59 +288,6 @@ net a<4>           loc = p30;
 net a<5>           loc = p29;
 net a<6>           loc = p28;
 net a<7>           loc = p27;
-net a<8>           loc = p23;
-net a<9>           loc = p24;
-net a<10>          loc = p51;
-net a<11>          loc = p25;
-net d<0>           loc = p90;
-net d<1>           loc = p77;
-net d<2>           loc = p78;
-net d<3>           loc = p85;
-net d<4>           loc = p86;
-net d<5>           loc = p71;
-net d<6>           loc = p70;
-net d<7>           loc = p65;
-net d<8>           loc = p16;
-net d<9>           loc = p15;
-net d<10>          loc = p10;
-net d<11>          loc = p9;
-net d<12>          loc = p6;
-net d<13>          loc = p5;
-net d<14>          loc = p99;
-net d<15>          loc = p98;
-net chan_clk       loc = p44;
-net chan<0>        loc = p36;
-net chan<1>        loc = p37;
-net chan<2>        loc = p39;
-net chan<3>        loc = p50;
-#net chan<4>        loc = p52;
-#net chan<5>        loc = p56;
-#net chan<6>        loc = p57;
-#net chan<7>        loc = p61;
-#net chan<8>        loc = p62;
-net chan<9>        loc = p68;
-net chan<10>       loc = p72;
-net chan<11>       loc = p73;
-net chan<12>       loc = p82;
-net chan<13>       loc = p83;
-net chan<14>       loc = p84;
-net chan<15>       loc = p35;
-net chan<16>       loc = p34;
-net chan<17>       loc = p33;
-net chan<18>       loc = p32;
-net chan<19>       loc = p21;
-net chan<20>       loc = p20;
-net chan<21>       loc = p19;
-net chan<22>       loc = p13;
-net chan<23>       loc = p12;
-net chan<24>       loc = p7;
-net chan<25>       loc = p4;
-net chan<26>       loc = p3;
-net chan<27>       loc = p97;
-net chan<28>       loc = p94;
-net chan<29>       loc = p93;
-net chan<30>       loc = p89;
-net chan<31>       loc = p88;
 
 net fpga_clk       IOSTANDARD = LVTTL;
 net sdram_clk      IOSTANDARD = LVTTL | SLEW=FAST | DRIVE=8;
@@ -340,21 +296,9 @@ net bs             IOSTANDARD = LVTTL | SLEW=SLOW | DRIVE=6;
 net ras_n          IOSTANDARD = LVTTL | SLEW=SLOW | DRIVE=6;
 net cas_n          IOSTANDARD = LVTTL | SLEW=SLOW | DRIVE=6;
 net we_n           IOSTANDARD = LVTTL | SLEW=SLOW | DRIVE=6;
-net d*             IOSTANDARD = LVTTL | SLEW=SLOW | DRIVE=6;
-net chan_clk       IOSTANDARD = LVTTL;
-net chan*          IOSTANDARD = LVTTL;
 
 NET "fpga_clk" TNM_NET = "fpga_clk";
 TIMESPEC "TS_fpga_clk" = PERIOD "fpga_clk" 83 ns HIGH 50%;
-#
-# used by counter_top.vhdl
-#net fpga_clk       loc = p43;
-net cin            loc = p50;
-net reset          loc = p52;
-net up_down        loc = p56;
-net cout<0>        loc = p57;
-net cout<1>        loc = p61;
-net cout<2>        loc = p62;
 
 '''
 
@@ -523,8 +467,10 @@ def gen_xil_syn_script(syn_out_dir, tld_file, vhdl_files, constraints_file,
 
 # output folder
 set compile_directory   %s
+
 # top-level desing file
 set tld_file            %s
+
 # input source files:
 set vhdl_files          %s
 
@@ -727,6 +673,7 @@ def dir_make_sure(wd):
         gtkwave_cnf_cont = '# gtkwave custom configuration file\n'+ \
                            '#\n# eliminate some keys\n#\n'+ \
                            'accel "/File/Read Sim Logfile" (null)\n'+ \
+                           'accel "/File/Open New Window" (null)\n'+ \
                            'accel "/Edit/Toggle Trace Hier" (null)\n'+ \
                            'accel "/Edit/Toggle Group Open|Close" (null)\n'+ \
                            'accel "/Edit/Create Group" (null)\n'+ \
@@ -1101,17 +1048,28 @@ class mk_gui:
         wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
         tld_file = os.path.basename(self.dir_entry.get_text())
         tld = tld_file.split('.')[0]
-        if 'open_in_editor' in uri:
+        if 'synthesis_report' in uri:
             _fl = os.path.join(wd,'build',tld+'.syr')
 
             if os.path.isfile(_fl):
                 try:
-                    print 'Opening boot text viewer.'
+                    print 'Opening the ".syr" in boot text viewer.'
                     _txt = open(_fl, 'r').read()
                     viewer = text_viewer(_txt)
                     viewer.main()
                 except:
                     print 'Problems in loading the ".syr" file'
+        if 'xtclsh_script' in uri:
+            _fl = os.path.join(wd,'build','xil_syn_script.tcl')
+
+            if os.path.isfile(_fl):
+                try:
+                    print 'Opening xtclsh script in boot text viewer.'
+                    _txt = open(_fl, 'r').read()
+                    viewer = text_viewer(_txt)
+                    viewer.main()
+                except:
+                    print 'Problems in loading the xtclsh script'
         return True # to indicate that we handled the link request
 
     # watchdog to disconnect synthesis process pipes when the synthesis
@@ -1678,7 +1636,7 @@ class mk_gui:
         syn_report_lb = gtk.Label()
         syn_report_lb_fixed = gtk.Fixed()
         syn_report_lb.modify_font(pango.FontDescription("monospace 9"))
-        syn_report_lb.set_markup('<a href="open_in_editor">Open Synthesis Report</a>')
+        syn_report_lb.set_markup('<a href="xtclsh_script">xtclsh script</a> <a href="synthesis_report">synthesis report</a>')
         syn_report_lb.connect('activate-link', self.open_in_editor)
         syn_report_lb_fixed.put(syn_report_lb,0,15)
 

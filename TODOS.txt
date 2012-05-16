@@ -12,9 +12,15 @@
 
 # redesign the compile semaphore icons and use a progress bar.                  DONE
 
-# add a compile button.
+# add a compile button or bing a return key to it.                              WORK IN PROGRESS
 
-# add a button or text to open the Synthesis Report file counter_top.syr
+# add a button or text to open the Synthesis Report file counter_top.syr        DONE
 
-# add a progress bar for the synthesis process
+# add a progress bar or some way to see that the synthesis process is ongoing.
+
+# rewrite the beautifier function and make a class instead. In this way it can
+  be used for both synthesis and compile output window.
+
+
+
 
