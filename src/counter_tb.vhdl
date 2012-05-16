@@ -1,3 +1,6 @@
+--- ##### file: counter_tb.vhdl #####
+-- This is the test-bench file and is used to drive the simulation of 
+-- your design. This file is not used during synthesis.
 -- library
 library ieee;
 use ieee.std_logic_1164.all;
@@ -14,23 +17,23 @@ architecture TB of counter_tb is
     port( cout:     out std_logic_vector(7 downto 0);
           up_down:  in std_logic;
           reset:    in std_logic;
-          clk:      in std_logic);
+          fpga_clk: in std_logic);
     end component;
  
     signal cout:    std_logic_vector(7 downto 0);
     signal up_down: std_logic; 
     signal reset:   std_logic; 
-    signal clk:     std_logic; 
+    signal cin:     std_logic; 
  
 begin
  
-    dut: counter_top port map (cout, up_down, reset, clk); 
+    dut: counter_top port map (cout, up_down, reset, cin); 
  
     process
     begin
-        clk <= '0';  
+        cin <= '0';  
         wait for 10 ns;
-        clk <= '1';
+        cin <= '1';
         wait for 10 ns;
     end process;
 

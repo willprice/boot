@@ -122,9 +122,51 @@ def build():
     print 'All done.'
     return 0
 
+# this is a simple text viewer window
+class text_viewer:
+    def delete_event(self, widget, event, data=None):
+        return False
+
+    def destroy(self, widget, data=None):
+        gtk.main_quit()
+
+    def __init__(self, txt_in=None):
+        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        self.window.connect("delete_event", self.delete_event)
+        self.window.connect("destroy", self.destroy)
+        self.window.set_title("freerangefactory.org - boot ver. " + str(__version__) + " - text viewer")
+        self.window.set_border_width(3)
+        self.window.set_size_request(650, 500)
+
+        self.texteditorsw = gtk.ScrolledWindow()
+        self.texteditorsw.set_shadow_type(gtk.SHADOW_ETCHED_IN)
+        self.texteditorsw.set_policy(gtk.POLICY_AUTOMATIC,gtk.POLICY_AUTOMATIC)
+        self.texteditor = gtk.TextView(buffer=None)
+        self.texteditor.set_left_margin (10);
+        self.texteditor.set_right_margin (10);
+        self.textbuffer = self.texteditor.get_buffer()
+        
+        # set the text view font
+        self.texteditor.modify_font(pango.FontDescription("monospace 10"))
+
+        self.texteditor.set_wrap_mode(gtk.WRAP_WORD)
+        self.textbuffer.set_text(txt_in)
+        self.texteditor.set_editable(True)
+        self.texteditor.set_justification(gtk.JUSTIFY_LEFT)
+
+        self.texteditorsw.add(self.texteditor)
+        self.window.add(self.texteditorsw)
+
+        self.texteditorsw.show()
+        self.texteditor.show()
+        self.window.show()
+
+    def main(self):
+        gtk.main()
+
+
 # create a "src" folder and put in it two basic VHDL files as well as a
 # constraints file. This is just to help beginners to get started with boot
-
 def quick_start():
     call('clear'.split())
 
@@ -139,20 +181,20 @@ use ieee.numeric_std.all;
 -- entity
 entity counter_top is
 port (
-     cout    :out std_logic_vector (7 downto 0);
-     up_down :in  std_logic;               -- up down control for counter
-     clk     :in  std_logic;               -- Input clock
-     reset   :in  std_logic);              -- Input reset
+     cout     :out std_logic_vector (7 downto 0); -- Output signal (bus)
+     up_down  :in  std_logic;                     -- up down control for counter
+     fpga_clk :in  std_logic;                     -- Input clock
+     reset    :in  std_logic);                    -- Input reset
 end entity;
 
 -- architecture
 architecture rtl of counter_top is
     signal count :std_logic_vector (7 downto 0);
     begin
-        process (clk, reset) begin 
+        process (fpga_clk, reset) begin 
             if (reset = '1') then  
                 count <= (others=>'0');
-            elsif (rising_edge(clk)) then
+            elsif (rising_edge(fpga_clk)) then
                 if (up_down = '1') then
                     count <= std_logic_vector(unsigned(count) + 1);
                 else
@@ -183,23 +225,23 @@ architecture TB of counter_tb is
     port( cout:     out std_logic_vector(7 downto 0);
           up_down:  in std_logic;
           reset:    in std_logic;
-          clk:      in std_logic);
+          fpga_clk: in std_logic);
     end component;
  
     signal cout:    std_logic_vector(7 downto 0);
     signal up_down: std_logic; 
     signal reset:   std_logic; 
-    signal clk:     std_logic; 
+    signal cin:     std_logic; 
  
 begin
  
-    dut: counter_top port map (cout, up_down, reset, clk); 
+    dut: counter_top port map (cout, up_down, reset, cin); 
  
     process
     begin
-        clk <= '0';  
+        cin <= '0';  
         wait for 10 ns;
-        clk <= '1';
+        cin <= '1';
         wait for 10 ns;
     end process;
 
@@ -217,11 +259,12 @@ begin
 end;
 '''
 
-    content_fl3 = '''--- ##### file: board.ucf #####
-# simple example of a constraints file that you need when synthesize
-# your design. This file is specific to your FPGA board.
+    content_fl3 = '''##### file: board.ucf #####
+# Xula-200 board. Spartan3A XC3S200A, VQ100, speed grade: -4
+# (C) 1997-2010 - X Engineering Software Systems Corp.
 
 net fpga_clk       loc = p43;
+
 net sdram_clk      loc = p40;
 net sdram_clk_fb   loc = p41;
 net ras_n          loc = p59;
@@ -231,6 +274,88 @@ net bs             loc = p53;
 net a<0>           loc = p49;
 net a<1>           loc = p48;
 net a<2>           loc = p46;
+net a<3>           loc = p31;
+net a<4>           loc = p30;
+net a<5>           loc = p29;
+net a<6>           loc = p28;
+net a<7>           loc = p27;
+net a<8>           loc = p23;
+net a<9>           loc = p24;
+net a<10>          loc = p51;
+net a<11>          loc = p25;
+net d<0>           loc = p90;
+net d<1>           loc = p77;
+net d<2>           loc = p78;
+net d<3>           loc = p85;
+net d<4>           loc = p86;
+net d<5>           loc = p71;
+net d<6>           loc = p70;
+net d<7>           loc = p65;
+net d<8>           loc = p16;
+net d<9>           loc = p15;
+net d<10>          loc = p10;
+net d<11>          loc = p9;
+net d<12>          loc = p6;
+net d<13>          loc = p5;
+net d<14>          loc = p99;
+net d<15>          loc = p98;
+net chan_clk       loc = p44;
+net chan<0>        loc = p36;
+net chan<1>        loc = p37;
+net chan<2>        loc = p39;
+net chan<3>        loc = p50;
+#net chan<4>        loc = p52;
+#net chan<5>        loc = p56;
+#net chan<6>        loc = p57;
+#net chan<7>        loc = p61;
+#net chan<8>        loc = p62;
+net chan<9>        loc = p68;
+net chan<10>       loc = p72;
+net chan<11>       loc = p73;
+net chan<12>       loc = p82;
+net chan<13>       loc = p83;
+net chan<14>       loc = p84;
+net chan<15>       loc = p35;
+net chan<16>       loc = p34;
+net chan<17>       loc = p33;
+net chan<18>       loc = p32;
+net chan<19>       loc = p21;
+net chan<20>       loc = p20;
+net chan<21>       loc = p19;
+net chan<22>       loc = p13;
+net chan<23>       loc = p12;
+net chan<24>       loc = p7;
+net chan<25>       loc = p4;
+net chan<26>       loc = p3;
+net chan<27>       loc = p97;
+net chan<28>       loc = p94;
+net chan<29>       loc = p93;
+net chan<30>       loc = p89;
+net chan<31>       loc = p88;
+
+net fpga_clk       IOSTANDARD = LVTTL;
+net sdram_clk      IOSTANDARD = LVTTL | SLEW=FAST | DRIVE=8;
+net a*             IOSTANDARD = LVTTL | SLEW=SLOW | DRIVE=6;
+net bs             IOSTANDARD = LVTTL | SLEW=SLOW | DRIVE=6;
+net ras_n          IOSTANDARD = LVTTL | SLEW=SLOW | DRIVE=6;
+net cas_n          IOSTANDARD = LVTTL | SLEW=SLOW | DRIVE=6;
+net we_n           IOSTANDARD = LVTTL | SLEW=SLOW | DRIVE=6;
+net d*             IOSTANDARD = LVTTL | SLEW=SLOW | DRIVE=6;
+net chan_clk       IOSTANDARD = LVTTL;
+net chan*          IOSTANDARD = LVTTL;
+
+NET "fpga_clk" TNM_NET = "fpga_clk";
+TIMESPEC "TS_fpga_clk" = PERIOD "fpga_clk" 83 ns HIGH 50%;
+#
+# used by counter_top.vhdl
+#net fpga_clk       loc = p43;
+net cin            loc = p50;
+net reset          loc = p52;
+net up_down        loc = p56;
+net cout<0>        loc = p57;
+net cout<1>        loc = p61;
+net cout<2>        loc = p62;
+
 '''
 
     print 'Building a "src" folder and a basic VHDL working environment.' 
@@ -460,8 +585,13 @@ if {$proj_exists == 0} {
 
 # Implementation properties options
 
-# TRANSLATE
-project set "Allow Unmatched LOC Constraints" true -process Translate
+# TRANSLATE (often good to set this)
+project set "Allow Unmatched LOC Constraints" true -process "Translate"
+project set "Allow Unmatched Timing Group Constraints" "true" -process "Translate"
+
+# GENERATE PROGRAMMING FILE (good to set this for Xula-200 board)
+project set "Unused IOB Pins" "Float" -process "Generate Programming File"
+project set "FPGA Start-Up Clock" "JTAG Clock" -process "Generate Programming File"
 
 # MAP
 #project set "Map Effort Level" Medium -process map
@@ -623,31 +753,8 @@ def dir_make_sure(wd):
 #---------------------------- GUI CLASS BEGIN ----------------------------------
 class mk_gui:
 
-    # function to create a new file (unless it already exists)
-    # this action is triggered with the ENTER key
-    def make_new_file(self, widget):
-        full_path_file = self.dir_entry.get_text()
-        if os.path.isdir(full_path_file):
-            print 'Wrong file name format. No file created.'
-            return 1
-        elif not os.path.isfile(full_path_file):
-            # pop up a OK CANCEL confirmation window
-            answer = self.on_warn("The following file will be created:  " +
-                                   os.path.basename(full_path_file))
-            # create file
-            if answer == gtk.RESPONSE_OK:
-                open(full_path_file, 'w').close()
-                print 'New file created.'
-            else:
-                print 'File not created.'
-        else:
-            print 'This file already exists, no file created.'
-            #self.on_warn('This file already exist. Nothing to do.')
-            return 1
-        return 0
-
-    # function to deleted file when top-level design file entry
-    # is in focus and CTRL+D is pressed
+    # function to deleted or create a new file when top-level design file entry
+    # is in focus and CTRL+D or CTRL+N is pressed
     def entry_keypress(self, widget, event):
         # detect CTRL+D key pressed
         if event.keyval in (gtk.keysyms.D, gtk.keysyms.d) and \
@@ -672,8 +779,29 @@ class mk_gui:
                 print "This file does not exist. No file deleted."
                 self.on_warn('This file does not exist. No file deleted.')
                 return 1
+        if event.keyval in (gtk.keysyms.N, gtk.keysyms.n) and \
+                 event.state & gtk.gdk.CONTROL_MASK:
+
+            full_path_file = self.dir_entry.get_text()
+            if os.path.isdir(full_path_file):
+                print 'Wrong file name format. No file created.'
+                return 1
+            elif not os.path.isfile(full_path_file):
+                # pop up a OK CANCEL confirmation window
+                answer = self.on_warn("The following file will be created:  " +
+                                   os.path.basename(full_path_file))
+                # create file
+                if answer == gtk.RESPONSE_OK:
+                    open(full_path_file, 'w').close()
+                    print 'New file created.'
+                else:
+                    print 'File not created.'
+            else:
+                print 'This file already exists, no file created.'
+                #self.on_warn('This file already exist. Nothing to do.')
+                return 1
         else:
-            pass
+            print 'Key combination not understood.'
         return 0
 
     # function that runs when you tick the box "auto compile"
@@ -799,11 +927,13 @@ class mk_gui:
         elif 'compilation error' in val:
             self.comp_bar_go = False        # compile bar off
             self.comp_bar.set_text("Compilation Error")
+            self.comp_bar.set_fraction(0.0)
             GUI_COMPILATION_ERROR = True
             print 'Compilation error.'
         elif  'End processing'in val and (not GUI_COMPILATION_ERROR):
             self.comp_bar_go = False         # compile bar off
             self.comp_bar.set_text("Compilation Successful")
+            self.comp_bar.set_fraction(1.0)
             print 'Compiled successfully.'
         elif 'CLEAR ALL' in val:
             self.comp_textbuffer.set_text('') # clear screen
@@ -965,6 +1095,25 @@ class mk_gui:
             return 1
         return 0
 
+
+    # open the default editor and show a file
+    def open_in_editor(self, label, uri):
+        wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+        tld_file = os.path.basename(self.dir_entry.get_text())
+        tld = tld_file.split('.')[0]
+        if 'open_in_editor' in uri:
+            _fl = os.path.join(wd,'build',tld+'.syr')
+
+            if os.path.isfile(_fl):
+                try:
+                    print 'Opening boot text viewer.'
+                    _txt = open(_fl, 'r').read()
+                    viewer = text_viewer(_txt)
+                    viewer.main()
+                except:
+                    print 'Problems in loading the ".syr" file'
+        return True # to indicate that we handled the link request
+
     # watchdog to disconnect synthesis process pipes when the synthesis
     # process end naturally 
     def syn_watchdog(self,w):
@@ -1028,7 +1177,7 @@ class mk_gui:
             cmd = syn_cmd
             #cmd = 'xtclsh src/build/xil_syn_script.tcl'
             #cmd = "find / -name 't'"
-            # TODO: Note that bufsize=10 could be problematic
+            # TODO: Note that maybe bufsize=10 could be problematic (lots of CPU used)
             try:
                 self.syn_p = Popen(shlex.split(cmd), bufsize=10, stdout=PIPE, stderr=STDOUT)
                 print 'New Synthesis process ID:',self.syn_p.pid
@@ -1115,7 +1264,7 @@ class mk_gui:
             self.syn_textbuffer.insert_with_tags(position, _in, self.syn_green_tag) # green font type
         elif ('End processing' in _in) or ('Begin simulation' in _in) :
             self.syn_textbuffer.insert_with_tags(position, _in, self.syn_green_tag) # green font type
-        elif ('Summary' in _in) or ('Report' in _in):
+        elif ('Summary' in _in) or ('Report' in _in) or ('Command Line' in _in) :
             self.syn_textbuffer.insert_with_tags(position, _in, self.syn_bold_tag) # bold font type
         else:
             self.syn_textbuffer.insert_with_tags(position, _in, self.syn_gray_tag) # gray font type
@@ -1262,14 +1411,9 @@ class mk_gui:
     # some movement
     def comp_bar_timeout(self,pbobj):
         if self.comp_bar_go: # bar enabled
-            new_val = pbobj.comp_bar.get_fraction() + 0.02
-            if new_val > 1.0:
-                new_val = 0.0
-            #pbobj.comp_bar.set_fraction(new_val)
             pbobj.comp_bar.pulse()
         else: # bar disabled
-            pbobj.comp_bar.set_fraction(0)
-            pbobj.comp_bar.pulse()
+            pass
         return True
 
 
@@ -1288,7 +1432,7 @@ class mk_gui:
         self.window.connect("destroy", self.destroy_progress)
         self.window.set_border_width(2)
         self.window.set_size_request(890, 500)
-        self.window.set_title("freerangefactory.org - BOOT ver. " + str(__version__))
+        self.window.set_title("freerangefactory.org - boot ver. " + str(__version__))
 
         # make a 1X1 table to put the tabs in (this table is not really needed)
         table = gtk.Table(rows=1, columns=1, homogeneous=False)
@@ -1343,7 +1487,7 @@ class mk_gui:
         self.chk1.set_active(False)
         self.chk1.set_sensitive(False)
         tooltips.set_tip(self.chk1, 'Automatically compile and simulate '+\
-                                    'your design every time a file is modified')
+                                    'your design every time a file in "src/" is modified')
         # let's trigger an action when the check box changes
         self.chk1.connect("clicked", self.run_compile_and_sim, False)
 
@@ -1372,27 +1516,23 @@ class mk_gui:
         self.dir_entry = gtk.Entry()
         tooltips.set_tip(self.dir_entry, 
         'Here you select the top-level design file.\n\n'+
-        'ENTER:  create a new file.\n' +
-        'CTRL-D: delete current file.\n')
+        'ENTER:   compile and simulate.\n' +
+        'CTRL-N:  create a new file.\n' +
+        'CTRL-D:  delete current file.\n')
 
         # let's trigger an action when the text changes
         self.dir_entry.connect("changed", self.dir_entry_changed)
 
-        # let's trigger a "create file" action when the return key is pressed
-        self.dir_entry.connect("activate", self.make_new_file)
+        # TODO let's trigger a compile and simulate action when the return key is pressed
+        #self.dir_entry.connect("activate", self.make_new_file)
 
-        # let's trigger a "delete file" action when top-level design file entry
-        # is in focus and ctrl+D is pressed
+        # let's trigger a file action when top-level design file entry
+        # is in focus and a certain key combination is pressed
         self.dir_entry.connect('key-press-event', self.entry_keypress)
 
-        # let's trigger a drop down menu action when the top-level design
-        # file entry can show files and folders and down arrow is pressed
-        #self.dir_entry.connect('key-press-event', self.entry_keypress_down)
-
+        # make select top-level design file button
         self.img_ind = gtk.Image()
         self.img_ind.set_from_stock(gtk.STOCK_INDEX, gtk.ICON_SIZE_BUTTON)
-
-        # make icon-button
         btn_ind = gtk.Button()
         btn_ind.add(self.img_ind)
         btn_ind.connect("clicked", self.select_file)
@@ -1426,13 +1566,8 @@ class mk_gui:
         fixed.put(lb1,35,0)
         Vbox1.pack_start(fixed, False, False, 0)
 
-        # make line separator
-        #separator = gtk.HSeparator()
-        #Vbox1.pack_start(separator, False, False, 10)
-
         # add compile notification area to the compile tab
         Vbox1.pack_start(self.comp_scroller, True, True, 10)
-
 
         # make Synthesize tab 
         Hbox_syn1 = gtk.HBox(False, 0)
@@ -1532,16 +1667,26 @@ class mk_gui:
 
         # Create and connect syn_button
         self.start_stop_syn_button = gtk.Button('Start Synthesis')
-        #stop_syn_button = gtk.Button('Stop Synthesis')
         gen_syn_script_button = gtk.Button('Generate Script')
         self.syn_p = None # this is the synthesize process handler
         self.g_syn_id = None # this is the gobject for communication with the synthesis window
+
         self.start_stop_syn_button.connect("clicked", self.syn_button_action, self.start_stop_syn_button.get_label())
-        #stop_syn_button.connect("clicked", self.syn_button_action, 'stop')
         gen_syn_script_button.connect("clicked", self.gen_syn_script_button_action,'gen_script')
+
+        # add Synthesis Report label that opens src\build\counter_top.syr
+        syn_report_lb = gtk.Label()
+        syn_report_lb_fixed = gtk.Fixed()
+        syn_report_lb.modify_font(pango.FontDescription("monospace 9"))
+        syn_report_lb.set_markup('<a href="open_in_editor">Open Synthesis Report</a>')
+        syn_report_lb.connect('activate-link', self.open_in_editor)
+        syn_report_lb_fixed.put(syn_report_lb,0,15)
+
+
+        # pack things together
         Hbox_syn4.pack_start(gen_syn_script_button, False, False, 3)
         Hbox_syn4.pack_start(self.start_stop_syn_button, False, False, 3)
-        #Hbox_syn4.pack_start(stop_syn_button, False, False, 3)
+        Hbox_syn4.pack_end(syn_report_lb_fixed, False, False, 3)
         Vbox_syn1.pack_start(Hbox_syn4, False, False, 7)
         Vbox_syn1.pack_start(self.syn_scroller, True, True)
 
@@ -1593,7 +1738,7 @@ class mk_gui:
         pr_Hbox1.pack_start(self.pr_pbar, False, False, 7)
         self.pr_pbar.set_size_request(400,-1)
         #self.pr_pbar.set_text("you seem to be offline")
-        #self.pr_pbar.set_fraction(0.2) 
+        #self.pr_pbar.set_fraction(0.2)
         pr_Vbox1 = gtk.VBox(False, 0)
         pr_Vbox1.pack_start(pr_Hbox1, False, False, 7)
         pr_Vbox1.pack_start(pr_Hbox2, False, False, 7)

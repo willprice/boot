@@ -24,8 +24,8 @@ Thumbs.db
 *~
 
 # Some folders to ignore #
-old/
+old
 src/build
-backup/
-src/
+backup
+src
 
