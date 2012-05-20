@@ -37,6 +37,8 @@ from subprocess import call, Popen, PIPE, STDOUT
 from multiprocessing import Process, Pipe
 import gobject, pango
 import fcntl, shlex
+from pygments.lexers import PythonLexer
+from pygments.styles.tango import TangoStyle
 
 gobject.threads_init()
 
@@ -106,7 +108,7 @@ def build():
         call('sudo apt-get install python-gtk2 python-gobject'.split())
         call('sudo apt-get install gtk2-engines-pixbuf'.split())
         call('sudo apt-get install ghdl gtkwave'.split())
-        call('sudo pip install argparse'.split())
+        call('sudo pip install argparse pygments'.split())
     elif 'darwin' in sys.platform:                                  # APPLE OS X
         print 'Operating system not supported.'
         pass
@@ -124,19 +126,81 @@ def build():
 
 # this is a simple text viewer window
 class text_viewer:
+
     def delete_event(self, widget, event, data=None):
         return False
 
     def destroy(self, widget, data=None):
+        self.window2.destroy()
         gtk.main_quit()
 
-    def __init__(self, txt_in=None):
-        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        self.window.connect("delete_event", self.delete_event)
-        self.window.connect("destroy", self.destroy)
-        self.window.set_title("freerangefactory.org - boot ver. " + str(__version__) + " - text viewer")
-        self.window.set_border_width(3)
-        self.window.set_size_request(650, 500)
+    # load the content of the file in the viewer window
+    def load_file(self, widget):
+        _txt = ''
+        with open(self.local_file, 'r') as f:
+            _txt = f.read()
+        f.close()
+        #self.textbuffer.set_text(_txt) 
+        print 'File content loaded.'
+
+        # use pygments to color the text in the viewer
+        STYLE = TangoStyle
+        styles = {}
+        for token, value in PythonLexer().get_tokens(_txt):
+            while not STYLE.styles_token(token) and token.parent:
+                token = token.parent
+            if token not in styles:
+                styles[token] = self.textbuffer.create_tag()
+            start = self.textbuffer.get_end_iter()
+            self.textbuffer.insert_with_tags(start, value.encode('utf-8'), styles[token])
+ 
+        for token, tag in styles.iteritems():
+            style = STYLE.style_for_token(token)
+            if style['bgcolor']:
+                tag.set_property('background', '#' + style['bgcolor'])
+            if style['color']:
+                tag.set_property('foreground', '#' + style['color'])
+            if style['bold']:
+                tag.set_property('weight', pango.WEIGHT_BOLD)
+            if style['italic']:
+                tag.set_property('style', pango.STYLE_ITALIC)
+            if style['underline']:
+                tag.set_property('underline', pango.UNDERLINE_SINGLE)
+
+
+    # save the content of the viewer window in the local file
+    def save_content(self, widget):
+        _txt = self.textbuffer.get_text(self.textbuffer.get_start_iter(),
+                                        self.textbuffer.get_end_iter(),
+                                        include_hidden_chars=True)
+
+        # save viewer content into file
+        with open(self.local_file, 'w') as f:
+            f.write(_txt)
+        f.close()
+        print 'Content saved in local file.'
+    
+    # constructor.
+    def __init__(self, _file):
+        self.local_file = _file
+
+        self.window2 = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        self.window2.connect("delete_event", self.delete_event)
+        self.window2.connect("destroy", self.destroy)
+        self.window2.set_title(os.path.basename(self.local_file))
+        self.window2.set_border_width(3)
+        self.window2.set_size_request(650, 500)
+
+        viewer_btn_save = gtk.Button('Save Changes')
+        viewer_btn_close = gtk.Button('Close Window')
+        viewer_btn_close.connect("clicked", self.destroy)
+        viewer_btn_save.connect("clicked", self.save_content)
+
+        # put stuff together in the window
+        viewer_Vbox = gtk.VBox(False, 0)
+        viewer_Hbox = gtk.HBox(False, 0)
+        viewer_Hbox.pack_end(viewer_btn_close, False, False, 2)
+        viewer_Hbox.pack_end(viewer_btn_save, False, False, 2)
 
         self.texteditorsw = gtk.ScrolledWindow()
         self.texteditorsw.set_shadow_type(gtk.SHADOW_ETCHED_IN)
@@ -150,20 +214,20 @@ class text_viewer:
         self.texteditor.modify_font(pango.FontDescription("monospace 10"))
 
         self.texteditor.set_wrap_mode(gtk.WRAP_WORD)
-        self.textbuffer.set_text(txt_in)
         self.texteditor.set_editable(True)
         self.texteditor.set_justification(gtk.JUSTIFY_LEFT)
 
         self.texteditorsw.add(self.texteditor)
-        self.window.add(self.texteditorsw)
+        self.window2.add(viewer_Vbox)
+        viewer_Vbox.pack_start(self.texteditorsw, True, True, 0)
+        viewer_Vbox.pack_start(viewer_Hbox, False, False, 2)
 
-        self.texteditorsw.show()
-        self.texteditor.show()
-        self.window.show()
+        self.window2.show_all()
 
-    def main(self):
+    # load file into viewer and show the viewer GUI
+    def start(self):
+        self.load_file(self)
         gtk.main()
-
 
 # create a "src" folder and put in it two basic VHDL files as well as a
 # constraints file. This is just to help beginners to get started with boot
@@ -1047,29 +1111,22 @@ class mk_gui:
     def open_in_editor(self, label, uri):
         wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
         tld_file = os.path.basename(self.dir_entry.get_text())
-        tld = tld_file.split('.')[0]
+        _fl=''
+
         if 'synthesis_report' in uri:
+            tld = tld_file.split('.')[0]
             _fl = os.path.join(wd,'build',tld+'.syr')
-
-            if os.path.isfile(_fl):
-                try:
-                    print 'Opening the ".syr" in boot text viewer.'
-                    _txt = open(_fl, 'r').read()
-                    viewer = text_viewer(_txt)
-                    viewer.main()
-                except:
-                    print 'Problems in loading the ".syr" file'
         if 'xtclsh_script' in uri:
-            _fl = os.path.join(wd,'build','xil_syn_script.tcl')
+             _fl = os.path.join(wd,'build','xil_syn_script.tcl')
 
-            if os.path.isfile(_fl):
+        if os.path.isfile(_fl):
                 try:
-                    print 'Opening xtclsh script in boot text viewer.'
-                    _txt = open(_fl, 'r').read()
-                    viewer = text_viewer(_txt)
-                    viewer.main()
+                    print 'Opening the file in boot text viewer.'
+                    viewer = text_viewer(_fl)
+                    viewer.start()
                 except:
-                    print 'Problems in loading the xtclsh script'
+                    print 'Problems in loading the file'
+
         return True # to indicate that we handled the link request
 
     # watchdog to disconnect synthesis process pipes when the synthesis
@@ -1374,7 +1431,6 @@ class mk_gui:
             pass
         return True
 
-
     # Clean up allocated memory and remove the compile progress bar timer
     def destroy_progress(self, widget, data=None):
         gobject.source_remove(self.comp_bar_timer)
@@ -1389,7 +1445,7 @@ class mk_gui:
         #self.window.connect("delete_event", self.delete)
         self.window.connect("destroy", self.destroy_progress)
         self.window.set_border_width(2)
-        self.window.set_size_request(890, 500)
+        self.window.set_size_request(920, 500)
         self.window.set_title("freerangefactory.org - boot ver. " + str(__version__))
 
         # make a 1X1 table to put the tabs in (this table is not really needed)

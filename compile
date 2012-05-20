@@ -2,8 +2,10 @@
 import py_compile
 from subprocess import call
 
+
 py_compile.compile("boot.py")
 call('chmod +x boot.pyc'.split())
 print 'boot.pyc successfully generated.'
+
 
 

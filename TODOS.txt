@@ -12,15 +12,24 @@
 
 # redesign the compile semaphore icons and use a progress bar.                  DONE
 
-# add a compile button or bing a return key to it.                              WORK IN PROGRESS
+# add a compile button or bind a return key to it.                              WORK IN PROGRESS
 
 # add a button or text to open the Synthesis Report file counter_top.syr        DONE
 
 # add a progress bar or some way to see that the synthesis process is ongoing.
 
 # rewrite the beautifier function and make a class instead. In this way it can
-  be used for both synthesis and compile output window.
+  be used for both synthesis and compile output window. Also use this new 
+  beautifier class to color the boot text editor.
 
+# add save and close button to the txt viewer. In this way the synthesis script DONE
+  will be editable by the user.
+
+# find a way to pull the book "free range factory" from the Internet, doing so
+  in a new tab might be a little too intrusive.
+
+# find a way to pull vhdl code from opencores.org in a tab. It would be also 
+  pretty cool to become able to import opencores code in your src folder.
 
 
 
