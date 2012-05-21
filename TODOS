@@ -31,5 +31,6 @@
 # find a way to pull vhdl code from opencores.org in a tab. It would be also 
   pretty cool to become able to import opencores code in your src folder.
 
+# modify things so that pip is the default installer.
 
 

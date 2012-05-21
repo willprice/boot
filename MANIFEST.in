@@ -1,0 +1,14 @@
+include COPYRIGHT
+include LICENSE
+include MANIFEST.in
+include README
+include boot
+include TODOS
+include CONTRIBUTE
+
+recursive-include boot_pkg/icns *.png
+
+global-exclude *.pyc
+global-exclude *~
+
+

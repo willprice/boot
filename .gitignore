@@ -24,8 +24,6 @@ Thumbs.db
 *~
 
 # Some folders to ignore #
-old
-src/build
-backup
 src
+boot_pkg/old
 

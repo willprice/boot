@@ -25,7 +25,7 @@ License:  GNU General Public License
 #    You should have received a copy of the GNU Lesser General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-__version__ = 0.18
+__version__ = 0.19
 __author__ = 'Fabrizio Tappero'
 
 import pygtk, gtk, gobject, glob, os, time, sys, argparse
@@ -1855,8 +1855,8 @@ def gui_up():
     gtk.main()
     return 0
 
-# MAIN
-def main():
+# this is boot main program
+def boot():
 
     # create one pipe for communication between compilation/simulation process
     # an the GUI
@@ -1877,8 +1877,8 @@ def main():
     comp_prc.join()
     return 0
 
-# to be executed when you call "./boot"
-if __name__ == "__main__":
+# main
+def main():
 
     # load parser for help options
     parser = argparse.ArgumentParser(
@@ -1906,9 +1906,14 @@ if __name__ == "__main__":
             # redirect standard output
             #sys.stdout = open('boot.log', 'w')
             #sys.stdout = open('/dev/null', 'w')
-            main()
+            boot()
     except KeyboardInterrupt:
         print 'bye bye.'
+    return 0
 
+
+# to be executed when you call "./boot"
+if __name__ == "__main__":
+    main()
 
 
