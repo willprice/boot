@@ -6,7 +6,7 @@ from distutils.core import setup
 
 setup(
     name = 'boot',
-    version = '0.15',
+    version = '0.19',
     description = 'VHDL simulator and synthesis tool',
     author = 'free range factory',
     author_email = 'contact@freerangefactory.org',

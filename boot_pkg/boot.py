@@ -12,370 +12,18 @@ Author:   Fabrizio Tappero, fabrizio.tappero<at>gmail.com
 License:  GNU General Public License
 '''
 
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as 
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 __version__ = 0.19
 __author__ = 'Fabrizio Tappero'
 
-import pygtk, gtk, gobject, glob, os, time, sys, argparse
-import ConfigParser, webkit, httplib, pprint, shutil
-
-from gtk import gdk
-pygtk.require('2.0')
-from subprocess import call, Popen, PIPE, STDOUT
-from multiprocessing import Process, Pipe
-import gobject, pango
-import fcntl, shlex
-from pygments.lexers import PythonLexer
-from pygments.styles.tango import TangoStyle
+from lib import *
 
 gobject.threads_init()
 
-# Xilinx device data
-# # http://www.xilinx.com/support/index.htm
-dev_manufacturer  = ['Xilinx', 'Altera', 'Actel'] 
-dev_family  = ['Spartan6','Spartan3','Spartan3A','Spartan3E','Artix','Kintex',
-'Virtex4','Virtex5','Virtex6','Virtex7','Zynq','CoolRunner','XC9500X']
-dev_device=['Zynq7000 XC7Z010','Zynq7000 XC7Z020','Zynq7000 XC7Z030','Zynq7000 XC7Z045','Artix7 XC7A100T','Artix7 XC7A200T',
-'Artix7 XC7A350T','Kintex7 XC7K70T','Kintex7 XC7K160T','Kintex7 XC7K325T','Kintex7 XC7K355T','Kintex7 XC7K410T','Kintex7 XC7K420T',
-'Kintex7 XC7K480T','Virtex7 XC7V585T','Virtex7 XC7V1500T','Virtex7 XC7V2000T','Virtex7 XC7VX330T','Virtex7 XC7VX415T',
-'Virtex7 XC7VX485T','Virtex7 XC7VX550T','Virtex7 XC7VX690T','Virtex7 XC7VX980T','Virtex7 XC7VX1140T','Virtex7 XC7VH290T',
-'Virtex7 XC7VH580T','Virtex7 XC7VH870T','Virtex6 XC6VLX75T','Virtex6 XC6VLX130T','Virtex6 XC6VLX195T','Virtex6 XC6VLX240T ',
-'Virtex6 XC6VLX365T','Virtex6 XC6VLX550T','Virtex6 XC6VLX760','Virtex6 XC6VSX315T','Virtex6 XC6VSX475T','Virtex6 XC6VHX250T',
-'Virtex6 XC6VHX255T','Virtex6 XC6VHX380T','Virtex6 XC6VHX565T','Virtex6Q XQ6VLX130T','Virtex6Q XQ6VLX240T','Virtex6Q XQ6VLX550T',
-'Virtex6Q XQ6VSX315T','Virtex6Q XQ6VSX475T','Virtex5 XC5VLX30','Virtex5 XC5VLX50','Virtex5 XC5VLX85','Virtex5 XC5VLX110',
-'Virtex5 XC5VLX155','Virtex5 XC5VLX220','Virtex5 XC5VLX330','Virtex5 XC5VLX20T','Virtex5 XC5VLX30T','Virtex5 XC5VLX50T',
-'Virtex5 XC5VLX85T','Virtex5 XC5VLX110T','Virtex5 XC5VLX155T','Virtex5 XC5VLX220T','Virtex5 XC5VLX330T','Virtex5 XC5VSX35T',
-'Virtex5 XC5VSX50T','Virtex5 XC5VSX95T','Virtex5 XC5VSX240T','Virtex5 XC5VFX30T','Virtex5 XC5VFX70T','Virtex5 XC5VFX100T',
-'Virtex5 XC5VFX130T','Virtex5 XC5VFX200T','Virtex5Q XQ5VLX85','Virtex5Q XQ5VLX110','Virtex5Q XQ5VLX30T','Virtex5Q XQ5VLX110T',
-'Virtex5Q XQ5VLX155T','Virtex5Q XQ5VLX220T','Virtex5Q XQ5VLX330T','Virtex5Q XQ5VSX50T','Virtex5Q XQ5VSX95T','Virtex5Q XQ5VSX240T',
-'Virtex5Q XQ5VFX70T','Virtex5Q XQ5VFX100T','Virtex5Q XQ5VFX130T','Virtex5Q XQ5VFX200T','Virtex5QV XQR5VFX130','Virtex4 XC4VLX15',
-'Virtex4 XC4VLX25','Virtex4 XC4VLX40','Virtex4 XC4VLX60','Virtex4 XC4VLX80','Virtex4 XC4VLX100','Virtex4 XC4VLX160',
-'Virtex4 XC4VLX200','Virtex4 XC4VSX25','Virtex4 XC4VSX35','Virtex4 XC4VSX55','Virtex4 XC4VFX12','Virtex4 XC4VFX20',
-'Virtex4 XC4VFX40','Virtex4 XC4VFX60','Virtex4 XC4VFX100','Virtex4 XC4VFX140','Virtex4Q XQ4VLX25','Virtex4Q XQ4VLX40',
-'Virtex4Q XQ4VLX60','Virtex4Q XQ4VLX80','Virtex4Q XQ4VLX100','Virtex4Q XQ4VLX160','Virtex4Q XQ4VSX55','Virtex4Q XQ4VFX60',
-'Virtex4Q XQ4VFX100','Virtex4QV XQR4VSX55','Virtex4QV XQR4VFX60','Virtex4QV XQR4VFX140','Virtex4QV XQR4VLX200','Spartan6 XC6SLX4',
-'Spartan6 XC6SLX9','Spartan6 XC6SLX16','Spartan6 XC6SLX25','Spartan6 XC6SLX45','Spartan6 XC6SLX75','Spartan6 XC6SLX100',
-'Spartan6 XC6SLX150','Spartan6 XC6SLX25T','Spartan6 XC6SLX45T','Spartan6 XC6SLX75T','Spartan6 XC6SLX100T','Spartan6 XC6SLX150T',
-'Spartan6Q XQ6SLX75','Spartan6Q XQ6SLX150','Spartan6Q XQ6SLX75T','Spartan6Q XQ6SLX150T','Spartan3A_DSP XC3SD1800A',
-'Spartan3A_DSP XC3SD3400A','Spartan3AN XC3S50AN','Spartan3AN XC3S200AN','Spartan3AN XC3S400AN','Spartan3AN XC3S700AN',
-'Spartan3AN XC3S1400AN','Spartan3A XC3S50A','Spartan3A XC3S200A','Spartan3A XC3S400A','Spartan3A XC3S700A','Spartan3A XC3S1400A',
-'Spartan3L XC3S1000L','Spartan3L XC3S1500L','Spartan3L XC3S4000L','Spartan3E XC3S100E','Spartan3E XC3S250E','Spartan3E XC3S500E',
-'Spartan3E XC3S1200E','Spartan3E XC3S1600E','Spartan3 XC3S50','Spartan3 XC3S200','Spartan3 XC3S400','Spartan3 XC3S1000',
-'Spartan3 XC3S1500','Spartan3 XC3S2000','Spartan3 XC3S4000','Spartan3 XC3S5000','CoolRunnerII XC2C32A','CoolRunnerII XC2C64A',
-'CoolRunnerII XC2C128','CoolRunnerII XC2C256','CoolRunnerII XC2C384','CoolRunnerII XC2C512','XC9500XL XC9536XL','XC9500XL XC9572XL',
-'XC9500XL XC95144XL','XC9500XL XC95288XL']
-#dev_device = [x.split()[1] for x in dev_device]
-
-dev_package=['BG256','CP132','CP56','CPG132','CPG196','CPG236','CS144','CS280',
-'CS48','CS484','CSG144','CSG225','CSG324','CSG484','FBG484','FBG676','FBG900',
-'FF1136','FF1136','FF1148','FF1152','FF1153','FF1154','FF1155','FF1156',
-'FF1517','FF1738','FF1759','FF1760','FF1760','FF1923','FF1924','FF323','FF324',
-'FF484','FF665','FF668','FF672','FF676','FF784','FFG1155','FFG1156','FFG1157',
-'FFG1158','FFG1159','FFG1761','FFG1925','FFG1926','FFG1927','FFG1928','FFG1929',
-'FFG1930','FFG1931','FFG1932','FFG484','FFG676','FFG784','FFG900','FG208',
-'FG256','FG320','FG324','FG400','FG456','FG484','FG484','FG676','FG900',
-'FGG484','FGG676','FGG784','FGG900','FT256','FTG256','PC44','PQ208','PQG208',
-'QF32','QF48','RF1156','RF1759','RF784','SBG324','SF363','TQ100','TQ144',
-'TQG100','TQG144','VQ100','VQ44','VQ64','VQG100']
-
-
-dev_speed = ['-L1','-1','-2','-3','-3N','-4','-5','-6','-7','-10','-11','-12']
 
 # global variables
 before=[]
 GUI_COMPILATION_ERROR = False
 
-# Download and install everything that is needed for boot to function
-def build():
-    if 'linux' in sys.platform:                                       # LINUX OS
-        call('clear'.split())
-        print 'Downloading and install necessary packages.'
-        print 'You need to be connected to the Internet.\n'
-        call('sudo apt-get update'.split()) # update apt-get database
-        call('sudo apt-get install python-pip'.split())
-        call('sudo apt-get install python-gtk2 python-gobject'.split())
-        call('sudo apt-get install gtk2-engines-pixbuf'.split())
-        call('sudo apt-get install ghdl gtkwave'.split())
-        call('sudo pip install argparse pygments'.split())
-    elif 'darwin' in sys.platform:                                  # APPLE OS X
-        print 'Operating system not supported.'
-        pass
-    elif 'win32' in sys.platform:                                   # WINDOWS OS
-        print 'Operating system not supported.'
-        pass
-    elif 'cygwin' in sys.platform:                     # WINDOWS OS UNDER CYGWIN
-        print 'Operating system not supported.'
-        pass
-    else:                                                             # OTHER OS
-        print 'Operating system not supported.'
-        pass
-    print 'All done.'
-    return 0
-
-# this is a simple text viewer window
-class text_viewer:
-
-    def delete_event(self, widget, event, data=None):
-        return False
-
-    def destroy(self, widget, data=None):
-        self.window2.destroy()
-        gtk.main_quit()
-
-    # load the content of the file in the viewer window
-    def load_file(self, widget):
-        _txt = ''
-        with open(self.local_file, 'r') as f:
-            _txt = f.read()
-        f.close()
-        #self.textbuffer.set_text(_txt) 
-        print 'File content loaded.'
-
-        # use pygments to color the text in the viewer
-        STYLE = TangoStyle
-        styles = {}
-        for token, value in PythonLexer().get_tokens(_txt):
-            while not STYLE.styles_token(token) and token.parent:
-                token = token.parent
-            if token not in styles:
-                styles[token] = self.textbuffer.create_tag()
-            start = self.textbuffer.get_end_iter()
-            self.textbuffer.insert_with_tags(start, value.encode('utf-8'), styles[token])
- 
-        for token, tag in styles.iteritems():
-            style = STYLE.style_for_token(token)
-            if style['bgcolor']:
-                tag.set_property('background', '#' + style['bgcolor'])
-            if style['color']:
-                tag.set_property('foreground', '#' + style['color'])
-            if style['bold']:
-                tag.set_property('weight', pango.WEIGHT_BOLD)
-            if style['italic']:
-                tag.set_property('style', pango.STYLE_ITALIC)
-            if style['underline']:
-                tag.set_property('underline', pango.UNDERLINE_SINGLE)
-
-
-    # save the content of the viewer window in the local file
-    def save_content(self, widget):
-        _txt = self.textbuffer.get_text(self.textbuffer.get_start_iter(),
-                                        self.textbuffer.get_end_iter(),
-                                        include_hidden_chars=True)
-
-        # save viewer content into file
-        with open(self.local_file, 'w') as f:
-            f.write(_txt)
-        f.close()
-        print 'Content saved in local file.'
-    
-    # constructor.
-    def __init__(self, _file):
-        self.local_file = _file
-
-        self.window2 = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        self.window2.connect("delete_event", self.delete_event)
-        self.window2.connect("destroy", self.destroy)
-        self.window2.set_title(os.path.basename(self.local_file))
-        self.window2.set_border_width(3)
-        self.window2.set_size_request(650, 500)
-
-        viewer_btn_save = gtk.Button('Save Changes')
-        viewer_btn_close = gtk.Button('Close Window')
-        viewer_btn_close.connect("clicked", self.destroy)
-        viewer_btn_save.connect("clicked", self.save_content)
-
-        # put stuff together in the window
-        viewer_Vbox = gtk.VBox(False, 0)
-        viewer_Hbox = gtk.HBox(False, 0)
-        viewer_Hbox.pack_end(viewer_btn_close, False, False, 2)
-        viewer_Hbox.pack_end(viewer_btn_save, False, False, 2)
-
-        self.texteditorsw = gtk.ScrolledWindow()
-        self.texteditorsw.set_shadow_type(gtk.SHADOW_ETCHED_IN)
-        self.texteditorsw.set_policy(gtk.POLICY_AUTOMATIC,gtk.POLICY_AUTOMATIC)
-        self.texteditor = gtk.TextView(buffer=None)
-        self.texteditor.set_left_margin (10);
-        self.texteditor.set_right_margin (10);
-        self.textbuffer = self.texteditor.get_buffer()
-        
-        # set the text view font
-        self.texteditor.modify_font(pango.FontDescription("monospace 10"))
-
-        self.texteditor.set_wrap_mode(gtk.WRAP_WORD)
-        self.texteditor.set_editable(True)
-        self.texteditor.set_justification(gtk.JUSTIFY_LEFT)
-
-        self.texteditorsw.add(self.texteditor)
-        self.window2.add(viewer_Vbox)
-        viewer_Vbox.pack_start(self.texteditorsw, True, True, 0)
-        viewer_Vbox.pack_start(viewer_Hbox, False, False, 2)
-
-        self.window2.show_all()
-
-    # load file into viewer and show the viewer GUI
-    def start(self):
-        self.load_file(self)
-        gtk.main()
-
-# create a "src" folder and put in it two basic VHDL files as well as a
-# constraints file. This is just to help beginners to get started with boot
-def quick_start():
-    call('clear'.split())
-
-    content_fl1 = '''--- ##### file: counter_top.vhdl #####
--- This is the VHDL top-level design file. This file defines the top-level 
--- entity of your VHDL design.
--- library
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all; 
- 
--- entity
-entity counter_top is
-port (
-     cout     :out std_logic_vector (7 downto 0); -- Output signal (bus)
-     up_down  :in  std_logic;                     -- up down control for counter
-     fpga_clk :in  std_logic;                     -- Input clock
-     reset    :in  std_logic);                    -- Input reset
-end entity;
-
--- architecture
-architecture rtl of counter_top is
-    signal count :std_logic_vector (7 downto 0);
-    begin
-        process (fpga_clk, reset) begin 
-            if (reset = '1') then  
-                count <= (others=>'0');
-            elsif (rising_edge(fpga_clk)) then
-                if (up_down = '1') then
-                    count <= std_logic_vector(unsigned(count) + 1);
-                else
-                    count <= std_logic_vector(unsigned(count) - 1);
-                end if;
-            end if;
-        end process;
-        cout <= count;
-end architecture;
-'''
-
-    content_fl2 = '''--- ##### file: counter_tb.vhdl #####
--- This is the test-bench file and is used to drive the simulation of 
--- your design. This file is not used during synthesis.
--- library
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-
--- entity
-entity counter_tb is
-end entity;
-
--- architecture
-architecture TB of counter_tb is
- 
-    component counter_top
-    port( cout:     out std_logic_vector(7 downto 0);
-          up_down:  in std_logic;
-          reset:    in std_logic;
-          fpga_clk: in std_logic);
-    end component;
- 
-    signal cout:    std_logic_vector(7 downto 0);
-    signal up_down: std_logic; 
-    signal reset:   std_logic; 
-    signal cin:     std_logic; 
- 
-begin
- 
-    dut: counter_top port map (cout, up_down, reset, cin); 
- 
-    process
-    begin
-        cin <= '0';  
-        wait for 10 ns;
-        cin <= '1';
-        wait for 10 ns;
-    end process;
-
-    process
-    begin
-        up_down <= '1';
-        reset <= '1';
-        wait for 10 ns;
-        reset <= '0';
-        wait for 500 ns;
- 
-        up_down <= '0';
-        wait for 500 ns;
-    end process;
-end;
-'''
-
-    content_fl3 = '''##### file: board.ucf #####
-# This is a simplified version of a .ucf file that can be used
-# for the Xula-200 board. 
-# The Xula-200 board has a Spartan3A XC3S200A, VQ100, speed grade: -4
-
-# used by counter_top.vhdl
-net fpga_clk       loc = p43;
-net cin            loc = p50;
-net reset          loc = p52;
-net up_down        loc = p56;
-net cout<0>        loc = p57;
-net cout<1>        loc = p61;
-net cout<2>        loc = p62;
-
-net sdram_clk      loc = p40;
-net sdram_clk_fb   loc = p41;
-net ras_n          loc = p59;
-net cas_n          loc = p60;
-net we_n           loc = p64;
-net bs             loc = p53;
-
-net a<0>           loc = p49;
-net a<1>           loc = p48;
-net a<2>           loc = p46;
-net a<3>           loc = p31;
-net a<4>           loc = p30;
-net a<5>           loc = p29;
-net a<6>           loc = p28;
-net a<7>           loc = p27;
-
-net fpga_clk       IOSTANDARD = LVTTL;
-net sdram_clk      IOSTANDARD = LVTTL | SLEW=FAST | DRIVE=8;
-net a*             IOSTANDARD = LVTTL | SLEW=SLOW | DRIVE=6;
-net bs             IOSTANDARD = LVTTL | SLEW=SLOW | DRIVE=6;
-net ras_n          IOSTANDARD = LVTTL | SLEW=SLOW | DRIVE=6;
-net cas_n          IOSTANDARD = LVTTL | SLEW=SLOW | DRIVE=6;
-net we_n           IOSTANDARD = LVTTL | SLEW=SLOW | DRIVE=6;
-
-NET "fpga_clk" TNM_NET = "fpga_clk";
-TIMESPEC "TS_fpga_clk" = PERIOD "fpga_clk" 83 ns HIGH 50%;
-
-'''
-
-    print 'Building a "src" folder and a basic VHDL working environment.' 
-    try:
-        os.path.os.mkdir(os.path.join(os.getcwd(), 'src')) # make "src" dir
-        open(os.path.join(os.getcwd(),'src','counter_top.vhdl'),'w').write(content_fl1)
-        open(os.path.join(os.getcwd(),'src','counter_tb.vhdl'),'w').write(content_fl2)
-        open(os.path.join(os.getcwd(),'src','board.ucf'),'w').write(content_fl3)            
-    except:
-        print 'Problems in writing. You might have permission problems or\n', \
-              'the "src" folder already exists.\n'
-    return 0
 
 # compile and simulate VHDL project in ITS OWN PROCESS (notice that this is not
 # done in a thread but instead in a completely Independence process)
@@ -502,193 +150,6 @@ def comp_and_sim_proc(conn):
             pass
     return 0
 
-# generate and save a Xilinx ISE xtclsh script
-def gen_xil_syn_script(syn_out_dir, tld_file, vhdl_files, constraints_file,
-                       dev_family,dev_device, dev_package, dev_speed):
-
-    # formal vhdl file list
-    vhdl_files = '[ list ../' + ' ../'.join(vhdl_files) + ' ]'
-
-    # format constraints file list and take ONLY the first one
-    if len(constraints_file) == 0:
-        constraints_file = ''
-    elif len(constraints_file)>0:
-        constraints_file = constraints_file[0]
-        constraints_file = os.path.basename(constraints_file) # strip whole path
-        constraints_file = '../' + constraints_file
-    content = '''#
-# xil_syn_script.tcl
-#
-# script to synthesize your design using xtclsh from Xiling ISE
-# usage: xtclsh src/build/xil_syn_script.tcl
-#
-# this file is automatically generated by "boot"
-#
-# to use this script you need Xilinx ISE 12.x or later
-#
-# for some help:
-#      www.xilinx.com/itp/xilinx10/books/docs/dev/dev.pdf
-
-# output folder
-set compile_directory   %s
-
-# top-level desing file
-set tld_file            %s
-
-# input source files:
-set vhdl_files          %s
-
-# constraint file
-set constraints_file    %s
-
-# Xilinx CableServer host PC:
-set cableserver_host {}
-
-set proj $tld_file
-
-puts "Running ISE xtclsh script: \\"xil_syn_script.tcl\\" automatically generated"
-
-if { $cableserver_host == "" } {
-  puts "Running with the board connected to the local machine.\\n"
-} else {
-  puts "Running with the board connected to $cableserver_host.\\n"
-}
-
-# Set compile directory
-if {![file isdirectory $compile_directory]} {
-  file mkdir $compile_directory
-   }
-cd $compile_directory
-
-
-# Create a new project or open project
-set proj_exists [file exists $proj.xise]
-
-if {$proj_exists == 0} {
-    puts "Creating a new Xilinx ISE project ..."
-    project new $proj.xise
-
-    # Project settings
-    project set family  %s
-    project set device  %s
-    project set package %s
-    project set speed   %s
-
-    # Add source files to the project
-    foreach filename $vhdl_files {
-      xfile add $filename
-    }
-    xfile add $constraints_file
-
-    # Make sure $source_directory is properly set
-    if { ! [catch {set source_directory $source_directory}] } {
-      project set "Macro Search Path" $source_directory -process Translate
-    }
-
-} else {
-
-    puts "Opening existing Xilinx ISE project"
-
-    # Open the existing project
-    project open $proj.xise
-}
-
-# Implementation properties options
-
-# TRANSLATE (often good to set this)
-project set "Allow Unmatched LOC Constraints" true -process "Translate"
-project set "Allow Unmatched Timing Group Constraints" "true" -process "Translate"
-
-# GENERATE PROGRAMMING FILE (good to set this for Xula-200 board)
-project set "Unused IOB Pins" "Float" -process "Generate Programming File"
-project set "FPGA Start-Up Clock" "JTAG Clock" -process "Generate Programming File"
-
-# MAP
-#project set "Map Effort Level" Medium -process map
-#project set "Perform Timing-Driven Packing and Placement" true -process map
-#project set "Register Duplication" true -process map
-#project set "Retiming" true -process map
-
-# PAR
-#project set "Place & Route Effort Level (Overall)" Standard
-#project set "Extra Effort (Highest PAR level only)" Normal
-
-# Implement Design
-puts "Implement Design..."
-# process run "Implement Design"
-process run "Generate Programming File"
-project close
-
-# All done
-puts "End of ISE Tcl script.\\n"
-
-# Download .bit file into your FPGA/CPLD device using impact
-
-# impact cannot be directly run via xtclsh, instead
-# an impact script file will be created  and run
-set impact_script_filename impact_script.scr
-set bit_filename $tld_file.bit
-
-if [catch {set f_id [open $impact_script_filename w]} msg] {
-  puts "Can't create $impact_script_filename"
-  puts $msg
-  exit
-}
-
-# For Spartan3E starter kit
-if { $cableserver_host == "" } {
-        # Assume using locally connected board
-        puts $f_id "setMode -bscan"
-        puts $f_id "setCable -p usb21"
-
-} else {
-        # Assume using cableserver on cableserver_host
-        puts $f_id "setMode -bscan"
-        puts $f_id "setCable -p usb21 -server $cableserver_host"
-}
-puts $f_id "addDevice -position 1 -file $bit_filename"
-puts $f_id "addDevice -p 2 -part xcf04s"
-puts $f_id "addDevice -p 3 -part xc2c64a"
-puts $f_id "readIdcode -p 1"
-puts $f_id "program -p 1"
-puts $f_id "quit"
-close $f_id
-
-#puts "\\n Switch on the Spartan3E board, connect the USB cable."
-#puts -nonewline "  Press Enter when you are ready to download...\\a"
-#flush stdout
-#
-# The "gets" command fails with the following message, if running within
-# the ISE Project Navigator GUI.
-#
-#   channel "stdin" wasn't opened for reading
-#
-#if [catch {gets stdin ignore_me} msg] {
-#  puts "\\n\\n *** $msg"
-#  puts " *** Carrying on regardless ...\\n"
-#  flush stdout
-#}
-# run impact script redirecting stdout
-# set impact_p [open "|impact -batch $impact_script_filename" r]
-# while {![eof $impact_p]} { gets $impact_p line ; puts $line }
-# close $impact
-
-# END
-''' %('src/build', tld_file, vhdl_files, constraints_file, \
-      dev_family, dev_device, dev_package, dev_speed)
-    # NOTE: above we have used "build" directory and not syn_out_dir
-
-    try:
-        print 'Generating Xilinx ISE xtclsh script'
-        if os.path.isdir(syn_out_dir):
-            open(os.path.join(syn_out_dir,'xil_syn_script.tcl'),'w').write(content)
-        else:
-            print 'Problems in writing, you might have permission problems.'
-    except:
-        print 'Problems in writing, you might have permission problems.'
-        return 1
-
-    return 0
 
 # check whether any VHDL file in folder "wd" has been modified
 def src_dir_modified(wd):
@@ -930,7 +391,7 @@ class mk_gui:
         # update compiling tab
         val = self.comp_comm_i.recv()
         #self.comp_textbuffer.insert_at_cursor(val)
-        self.comp_beautifier(self, val)
+        self.make_pretty_txt(self, val, self.comp_textbuffer)
         if 'Begin compiling'in val:
             self.comp_bar_go = True         # compile bar running
             self.comp_bar.set_text("Compiling...")
@@ -1093,7 +554,7 @@ class mk_gui:
 
         # Generating and saving synthesis script
         try:
-            if gen_xil_syn_script(syn_out_dir, tl, files, constraints_file, 
+            if tcl.make_xilinx(syn_out_dir, tl, files, constraints_file, 
                                   fa, de, pa, sp):
                 print 'Synthesis script generation process failed.'
                 return 1
@@ -1105,7 +566,6 @@ class mk_gui:
             print 'Maybe you have rights permission problems.'
             return 1
         return 0
-
 
     # open the default editor and show a file
     def open_in_editor(self, label, uri):
@@ -1122,8 +582,7 @@ class mk_gui:
         if os.path.isfile(_fl):
                 try:
                     print 'Opening the file in boot text viewer.'
-                    viewer = text_viewer(_fl)
-                    viewer.start()
+                    editor.text_editor(_fl).start()
                 except:
                     print 'Problems in loading the file'
 
@@ -1241,48 +700,48 @@ class mk_gui:
             print 'Wrong synthesis command.'
         return 0
 
-    # this method will style each line that gets displayed in the
-    # compile text output window
-    def comp_beautifier(self, widget, _in):
-        position = self.comp_textbuffer.get_end_iter()
+    # this class add more keywords that will be colored in blu.
+    # TODO find a way to color stuff in red.
+    class MyPythonLexer(PythonLexer):
+        EXTRA_KEYWORDS = ['Begin', 'End', 'simulation', 'compiling', 'error','No'
+                          'processing', 'completed','successfully','warning',
+                          'Completed']
 
-        # let's filter the content and apply the many styles
-        if ('not found' in _in) or ('error' in _in):
-            self.comp_textbuffer.insert_with_tags(position, _in, self.comp_red_tag) # red font type
-        elif ('ERROR' in _in):
-            self.comp_textbuffer.insert_with_tags(position, _in, self.comp_red_tag) # red and bold font type
-        elif ('warning' in _in) or ('WARNING' in _in):
-            self.comp_textbuffer.insert_with_tags(position, _in, self.comp_orange_tag) # orange font type
-        elif ('successful' in _in) or ('Begin compiling' in _in):
-            self.comp_textbuffer.insert_with_tags(position, _in, self.comp_green_tag) # green font type
-        elif ('End processing' in _in) or ('Begin simulation' in _in) :
-            self.comp_textbuffer.insert_with_tags(position, _in, self.comp_green_tag) # green font type
-        elif ('Summary' in _in) or ('Report' in _in):
-            self.comp_textbuffer.insert_with_tags(position, _in, self.comp_bold_tag) # bold font type
-        else:
-           self.comp_textbuffer.insert_with_tags(position, _in, self.comp_gray_tag) # gray font type
-        return 0
+        def get_tokens_unprocessed(self, text):
+            for index, token, value in PythonLexer.get_tokens_unprocessed(self, text):
+                if token is Name and value in self.EXTRA_KEYWORDS:
+                    yield index, Keyword.Pseudo, value
+                else:
+                    yield index, token, value
 
     # this method will style each line that gets displayed in the
-    # synthesis text output window 
-    def syn_beautifier(self, widget, _in):
-        position = self.syn_textbuffer.get_end_iter()
+    # text output window, it is used for the synthesis output
+    # and for the compile output
+    def make_pretty_txt(self, widget, _txt, _buff):
 
-        # let's filter the content and apply the many styles
-        if ('not found' in _in) or ('error' in _in):
-            self.syn_textbuffer.insert_with_tags(position, _in, self.syn_red_tag) # red font type
-        elif ('ERROR' in _in):
-            self.syn_textbuffer.insert_with_tags(position, _in, self.syn_red_tag) # red and bold font type
-        elif ('warning' in _in) or ('WARNING' in _in):
-            self.syn_textbuffer.insert_with_tags(position, _in, self.syn_orange_tag) # orange font type
-        elif ('successful' in _in) or ('Begin compiling' in _in):
-            self.syn_textbuffer.insert_with_tags(position, _in, self.syn_green_tag) # green font type
-        elif ('End processing' in _in) or ('Begin simulation' in _in) :
-            self.syn_textbuffer.insert_with_tags(position, _in, self.syn_green_tag) # green font type
-        elif ('Summary' in _in) or ('Report' in _in) or ('Command Line' in _in) :
-            self.syn_textbuffer.insert_with_tags(position, _in, self.syn_bold_tag) # bold font type
-        else:
-            self.syn_textbuffer.insert_with_tags(position, _in, self.syn_gray_tag) # gray font type
+        STYLE = TangoStyle
+        styles = {}
+        #for token, value in PythonLexer().get_tokens(_txt):
+        for token, value in self.MyPythonLexer().get_tokens(_txt):
+            while not STYLE.styles_token(token) and token.parent:
+                token = token.parent
+            if token not in styles:
+                styles[token] = _buff.create_tag()
+            start = _buff.get_end_iter()
+            _buff.insert_with_tags(start, value.encode('utf-8'), styles[token])
+
+        for token, tag in styles.iteritems():
+            style = STYLE.style_for_token(token)
+            if style['bgcolor']:
+                tag.set_property('background', '#' + style['bgcolor'])
+            if style['color']:
+                tag.set_property('foreground', '#' + style['color'])
+            if style['bold']:
+                tag.set_property('weight', pango.WEIGHT_BOLD)
+            if style['italic']:
+                tag.set_property('style', pango.STYLE_ITALIC)
+            if style['underline']:
+                tag.set_property('underline', pango.UNDERLINE_SINGLE)
         return 0
 
     # this method allows data in to get directed to the synthesis output window
@@ -1290,8 +749,8 @@ class mk_gui:
         if condition == gobject.IO_IN:
             #char = fd.read(1) # read one byte at the time
             char = fd.readline()
-            self.syn_beautifier(self, char)
             #self.syn_textbuffer.insert_at_cursor(char)
+            self.make_pretty_txt(self, char, self.syn_textbuffer)
             return True
         else:
             return False
@@ -1763,18 +1222,11 @@ class mk_gui:
         tooltips.set_tip(set_default_button, "Set boot to its default status")
 
         # define the beautifier styles for compile text output window
-        self.comp_bold_tag = self.comp_textbuffer.create_tag( "bold", weight=pango.WEIGHT_BOLD)
-        self.comp_red_tag = self.comp_textbuffer.create_tag( "red", foreground="#FF0000")
-        self.comp_green_tag = self.comp_textbuffer.create_tag( "green", foreground="#21E01F")
-        self.comp_gray_tag =self.comp_textbuffer.create_tag( "gray", foreground="#5E5E5E")
-        self.comp_orange_tag =self.comp_textbuffer.create_tag( "orange", foreground="#FFB605")
-
-        # define the beautifier styles for the synthesis text output window
-        self.syn_bold_tag = self.syn_textbuffer.create_tag( "bold", weight=pango.WEIGHT_BOLD)
-        self.syn_red_tag = self.syn_textbuffer.create_tag( "red", foreground="#FF0000")
-        self.syn_green_tag = self.syn_textbuffer.create_tag( "green", foreground="#21E01F")
-        self.syn_gray_tag = self.syn_textbuffer.create_tag( "gray", foreground="#5E5E5E")
-        self.syn_orange_tag = self.syn_textbuffer.create_tag( "orange", foreground="#FFB605")
+        #self.comp_bold_tag = self.comp_textbuffer.create_tag( "bold", weight=pango.WEIGHT_BOLD)
+        #self.comp_red_tag = self.comp_textbuffer.create_tag( "red", foreground="#FF0000")
+        #self.comp_green_tag = self.comp_textbuffer.create_tag( "green", foreground="#21E01F")
+        #self.comp_gray_tag =self.comp_textbuffer.create_tag( "gray", foreground="#5E5E5E")
+        #self.comp_orange_tag =self.comp_textbuffer.create_tag( "orange", foreground="#FFB605")
 
         ######## POPULATE COMPILE TAB ########
         # set current working directory as starting point and get
@@ -1899,9 +1351,9 @@ def main():
     # load stuff accordingly
     try:
         if args.build:
-            build()
+            build_all()
         elif args.quick_start:
-            quick_start()
+            quick_start('src')
         else:
             # redirect standard output
             #sys.stdout = open('boot.log', 'w')
