@@ -26,4 +26,5 @@ Thumbs.db
 # Some folders to ignore #
 src
 boot_pkg/old
-
+dist
+build

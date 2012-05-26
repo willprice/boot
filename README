@@ -8,45 +8,46 @@ compile, simulate and synthesize your VHDL code.
 boot is easy to use and runs on any Linux distribution. Documentation is 
 available `here <http://www.freerangefactory.org/site/pmwiki.php/Main/BootDoc>`_. 
 
-Paragraphs are separated by blank lines. *Italics*, **bold**,
-and ``monospace`` look like this.
-
-
 Download and Install boot
 =========================
 
-Under Linux, boot can be downloaded and installed with the command::
+Under Linux, boot can be downloaded and installed via the terminal command::
 
     sudo apt-get install python-pip
     pip install boot
 
-
-Upgrade boot
+Update boot
 ------------
 
-boot can be update with the command::
+boot can be updated with the command::
 
     pip install --upgrade boot
-
 
 How to Use boot 
 ===============
 
-boot can be started using the terminal::
+The first time you use boot you need to built and install its dependencies. You
+ can do that via the terminal command::
 
-    $ boot
+    boot -b
+
+boot can be started via the terminal command::
+
+    boot
 
 Have a look at the Help Tab for the complete boot documentation.
-
 
 Contribute to boot
 ==================
 
-have a look at the `free range factory website <http://www.freerangefactory.org>`_.
-
+If you think you want to contribute to the development of boot do not
+ hesitate to contact us via the
+ `free range factory website <http://www.freerangefactory.org>`_.
 
 License and Copyright
 =====================
 
-See included LICENSE and COPYRIGHT files.
+boot is released under the GNU GPL license.
+ See included LICENSE and COPYRIGHT files.
+
 

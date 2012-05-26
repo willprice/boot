@@ -33,4 +33,4 @@
 
 # modify things so that pip is the default installer.
 
-
+# find a way to let Pip copy the file boot.desktop in /usr/share/applications/

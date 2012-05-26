@@ -8,5 +8,5 @@ from editor import *
 
 if __name__ == '__main__':
 
-    _fl = os.path.join(os.getcwd(),'editor_test.py')
+    _fl = os.path.join(os.getcwd(),'test_editor.py')
     text_editor(_fl).start()

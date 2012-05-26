@@ -13,6 +13,8 @@ git is the version control system used for boot and code.google.com is where the
 source code of boot is hosted.
 These instructions tell you how to contribute to the development of boot.
 
+0) Install git and gitk.
+
 1) Get the latest version of boot:
         git clone http://code.google.com/p/boot-vhdl boot
         cd boot
