@@ -20,7 +20,7 @@ setup(
     package_dir={'boot_pkg': 'boot_pkg'},
     package_data={'boot_pkg': ['*.pyc']}, # '.py' are automatically added
     data_files=[('/usr/share/applications', ['boot_pkg/boot.desktop']), # dektop launcher
-                ('/usr/share/icons', ['boot_pkg/icns/boot.png'])],      # icon
+                ('/usr/share/icons', ['boot_pkg/icns/boot_icn.png'])],      # icon
     scripts = ['boot'], # the executable 'boot' will be put it '/usr/local/bin'
     license='GNU GPL License',
     long_description=open('README').read(),
@@ -45,6 +45,7 @@ setup(
 # /usr/share/icons/boot.png
 # /usr/share/applications/boot.desktop
 # /usr/local/lib/python2.7/dist-packages/boot_pkg/*
-# /usr/local/lib/python2.7/dist-packages/boot-0.19.egg-info
+# /usr/local/lib/python2.7/dist-packages/boot-0.19-py2.7.egg-info
+
 
 

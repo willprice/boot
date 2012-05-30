@@ -12,13 +12,15 @@
 
 # redesign the compile semaphore icons and use a progress bar.                  DONE
 
-# add a compile button or bind a return key to it.                              WORK IN PROGRESS
+# add a compile button or bind a return key to it.                              DONE
+
+# add a compile button.
 
 # add a button or text to open the Synthesis Report file counter_top.syr        DONE
 
-# add a progress bar or some way to see that the synthesis process is ongoing.
+# add a progress bar or some way to see that the synthesis process is ongoing.  ALMOST DONE but Spinner is too small and does not work
 
-# rewrite the beautifier function and make a class instead. In this way it can
+# rewrite the beautifier function and make a class instead. In this way it can  DONE 
   be used for both synthesis and compile output window. Also use this new 
   beautifier class to color the boot text editor.
 
@@ -31,6 +33,9 @@
 # find a way to pull vhdl code from opencores.org in a tab. It would be also 
   pretty cool to become able to import opencores code in your src folder.
 
-# modify things so that pip is the default installer.
+# modify things so that pip is the default installer.                           DONE
 
-# find a way to let Pip copy the file boot.desktop in /usr/share/applications/
+# find a way to let Pip copy the file boot.desktop in /usr/share/applications/  DONE
+
+# change the way new versions of boot are checked and use pip                   DONE
+

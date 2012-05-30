@@ -21,4 +21,4 @@ from build import build_all
 from quick_start import *
 import editor
 import tcl
-
+import new_version

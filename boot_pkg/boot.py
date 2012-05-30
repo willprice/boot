@@ -592,12 +592,14 @@ class mk_gui:
     # process end naturally 
     def syn_watchdog(self,w):
         if type(self.syn_p) is Popen and self.syn_p.poll() == None:
-            return True # process exista and still running
             self.start_stop_syn_button.set_label('Stop Synthesis') # change button label
+            self.syn_spinner.start() # make the synthesis wheen spin
+            return True # process exista and still running
         else:
             gobject.source_remove(self.g_syn_id)
             print 'Synthesis process naturally ended and pipe closed.'
             self.start_stop_syn_button.set_label('Start Synthesis') # change button label
+            self.syn_spinner.stop() # make the synthesis wheen stop spinning
             return False # this will stop the "gobject.timeout_add"
 
     # Start and stop the Synthesis of your vhdl design
@@ -705,7 +707,7 @@ class mk_gui:
     class MyPythonLexer(PythonLexer):
         EXTRA_KEYWORDS = ['Begin', 'End', 'simulation', 'compiling', 'error','No'
                           'processing', 'completed','successfully','warning',
-                          'Completed']
+                          'Completed','failed']
 
         def get_tokens_unprocessed(self, text):
             for index, token, value in PythonLexer.get_tokens_unprocessed(self, text):
@@ -804,43 +806,12 @@ class mk_gui:
         self.set_default_button_label.set_text('Done, you should now restart boot.')
         return 0
 
-    # check for and new version of "boot" and download it
-    def update_boot(self, widget):
-        self.pr_pbar.set_text("checking for updates...")
-
-        # Test connection health and exit if bad. If good proceed
-        try:
-            conn = httplib.HTTPConnection("www.freerangefactory.org")
-            conn.request("GET", "/dl/boot/boot.py")
-            r1 = conn.getresponse()
-            #print r1.status, r1.reason # 200 OK
-        except:
-            print 'Internet not available'
-            self.pr_pbar.set_text("you seem to be off line")
-            return 1
-    
-        if r1.status == 200 and r1.reason == 'OK':
-            new_boot_file = r1.read() # download whole boot file
-    
-            if '__version__' in new_boot_file:
-                new_boot_ver = [x for x in new_boot_file.splitlines() if x.startswith('__version__')][0].split(' ')[-1]
-                if float(new_boot_ver) > float(__version__):
-                    print 'The newest boot version is:', new_boot_ver
-                    print 'Your current boot version is', __version__
-                    #update your current boot file
-                    try:
-                        fl = open(os.path.join(sys.path[0], 'boot'),'w').write(new_boot_file)
-                        # TODO maybe here there is a way to allow to enter sudo password?
-                        print 'File "boot" successfully updated.'
-                        self.pr_pbar.set_text('file "boot" successfully updated.')
-                    except:
-                        print 'Problems in writing the local "boot" file.'
-                        self.pr_pbar.set_text('problems in writing the local "boot" file.')
-                else:
-                    print 'No new available version of "boot".'
-                    self.pr_pbar.set_text('no new available version of "boot".')
-        else:
-            print 'Problems in connecting to "freerangefactory.org"'
+    # check for and new version of "boot"
+    def check_for_new_ver(self, widget):
+        self.update_boot_msg.set_text('')
+        _answer = new_version.check_on_pypi()
+        print _answer
+        self.update_boot_msg.set_text(_answer)
         return 0
 
     # set of methods for the help tab browser
@@ -904,7 +875,8 @@ class mk_gui:
         #self.window.connect("delete_event", self.delete)
         self.window.connect("destroy", self.destroy_progress)
         self.window.set_border_width(2)
-        self.window.set_size_request(920, 500)
+        #self.window.set_size_request(920, 500)
+        self.window.set_size_request(920, 300)
         self.window.set_title("freerangefactory.org - boot ver. " + str(__version__))
 
         # make a 1X1 table to put the tabs in (this table is not really needed)
@@ -996,8 +968,9 @@ class mk_gui:
         # let's trigger an action when the text changes
         self.dir_entry.connect("changed", self.dir_entry_changed)
 
-        # TODO let's trigger a compile and simulate action when the return key is pressed
-        #self.dir_entry.connect("activate", self.make_new_file)
+        # let's trigger a compile and simulate action when the return key is pressed
+        self.dir_entry.connect("activate", self.run_compile_and_sim, True)
+        #TODO this action should be executed even if the auto compile check box is not checked
 
         # let's trigger a file action when top-level design file entry
         # is in focus and a certain key combination is pressed
@@ -1141,6 +1114,7 @@ class mk_gui:
         # Create and connect syn_button
         self.start_stop_syn_button = gtk.Button('Start Synthesis')
         gen_syn_script_button = gtk.Button('Generate Script')
+        self.syn_spinner = gtk.Spinner()
         self.syn_p = None # this is the synthesize process handler
         self.g_syn_id = None # this is the gobject for communication with the synthesis window
 
@@ -1159,6 +1133,7 @@ class mk_gui:
         # pack things together
         Hbox_syn4.pack_start(gen_syn_script_button, False, False, 3)
         Hbox_syn4.pack_start(self.start_stop_syn_button, False, False, 3)
+        Hbox_syn4.pack_start(self.syn_spinner, False, False, 0)
         Hbox_syn4.pack_end(syn_report_lb_fixed, False, False, 3)
         Vbox_syn1.pack_start(Hbox_syn4, False, False, 7)
         Vbox_syn1.pack_start(self.syn_scroller, True, True)
@@ -1207,26 +1182,17 @@ class mk_gui:
         pr_Hbox1.pack_start(check_updates_button, False, False, 7)
         pr_Hbox2.pack_start(set_default_button, False, False, 7)
         pr_Hbox2.pack_start(self.set_default_button_label, False, False, 2)
-        self.pr_pbar = gtk.ProgressBar(adjustment=None) # progress bar for "Check for Updates"
-        pr_Hbox1.pack_start(self.pr_pbar, False, False, 7)
-        self.pr_pbar.set_size_request(400,-1)
-        #self.pr_pbar.set_text("you seem to be offline")
-        #self.pr_pbar.set_fraction(0.2)
+        self.update_boot_msg = gtk.Label('')
+        pr_Hbox1.pack_start(self.update_boot_msg, False, False, 7)
+
         pr_Vbox1 = gtk.VBox(False, 0)
         pr_Vbox1.pack_start(pr_Hbox1, False, False, 7)
         pr_Vbox1.pack_start(pr_Hbox2, False, False, 7)
         notebook.append_page(pr_Vbox1, gtk.Label('Preferences'))
-        check_updates_button.connect("clicked", self.update_boot)
+        check_updates_button.connect("clicked", self.check_for_new_ver)
         set_default_button.connect("clicked", self.set_default_boot)
         tooltips.set_tip(check_updates_button, "Download a new version of boot")
         tooltips.set_tip(set_default_button, "Set boot to its default status")
-
-        # define the beautifier styles for compile text output window
-        #self.comp_bold_tag = self.comp_textbuffer.create_tag( "bold", weight=pango.WEIGHT_BOLD)
-        #self.comp_red_tag = self.comp_textbuffer.create_tag( "red", foreground="#FF0000")
-        #self.comp_green_tag = self.comp_textbuffer.create_tag( "green", foreground="#21E01F")
-        #self.comp_gray_tag =self.comp_textbuffer.create_tag( "gray", foreground="#5E5E5E")
-        #self.comp_orange_tag =self.comp_textbuffer.create_tag( "orange", foreground="#FFB605")
 
         ######## POPULATE COMPILE TAB ########
         # set current working directory as starting point and get
