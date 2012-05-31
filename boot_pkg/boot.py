@@ -876,12 +876,28 @@ class mk_gui:
         self.window.connect("destroy", self.destroy_progress)
         self.window.set_border_width(2)
         #self.window.set_size_request(920, 500)
-        self.window.set_size_request(920, 300)
+        self.window.set_size_request(920, 600)
         self.window.set_title("freerangefactory.org - boot ver. " + str(__version__))
 
         # make a 1X1 table to put the tabs in (this table is not really needed)
         table = gtk.Table(rows=1, columns=1, homogeneous=False)
-        self.window.add(table)
+        #self.window.add(table)
+
+        # make terminal
+        terminal = vte.Terminal()
+        terminal.connect ("child-exited", lambda term: gtk.main_quit())
+        terminal.fork_command()
+
+        # put the terminal in a scrollable window
+        terminal_window = gtk.ScrolledWindow()
+        terminal_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        terminal_window.add(terminal)
+
+        # make a resizable pannel
+        vpaned = gtk.VPaned()
+        vpaned.pack1(terminal_window, shrink=True)
+        vpaned.pack2(table, shrink=True)
+        self.window.add(vpaned)
         
         # make tool-tip object
         tooltips = gtk.Tooltips()

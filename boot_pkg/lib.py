@@ -1,6 +1,7 @@
 
 import pygtk, gtk, gobject, glob, os, time, sys, argparse
 import ConfigParser, webkit, httplib, pprint, shutil
+import vte
 from gtk import gdk
 
 pygtk.require('2.0')

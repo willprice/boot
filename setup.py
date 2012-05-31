@@ -11,7 +11,7 @@ import sys
 
 setup(
     name = 'boot',
-    version = '0.19',
+    version = '0.20',
     description = 'VHDL simulator and synthesis tool',
     author = 'free range factory',
     author_email = 'contact@freerangefactory.org',
