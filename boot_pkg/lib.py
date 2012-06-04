@@ -23,3 +23,5 @@ from quick_start import *
 import editor
 import tcl
 import new_version
+import version
+

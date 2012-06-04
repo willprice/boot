@@ -11,11 +11,10 @@ Site:     http://www.freerangefactory.org
 Author:   Fabrizio Tappero, fabrizio.tappero<at>gmail.com
 License:  GNU General Public License
 '''
+from lib import *
 
-__version__ = 0.19
 __author__ = 'Fabrizio Tappero'
 
-from lib import *
 
 gobject.threads_init()
 
@@ -444,7 +443,7 @@ class mk_gui:
         # save all
         config = ConfigParser.RawConfigParser()
         config.add_section('boot')
-        config.set('boot', 'version', __version__)
+        config.set('boot', 'version', version.boot_version)
         config.add_section('Last parameters')
         config.set('Last parameters', 'working directory', wd)
         config.set('Last parameters', 'top-level design file', tld_file)
@@ -877,7 +876,7 @@ class mk_gui:
         self.window.set_border_width(2)
         #self.window.set_size_request(920, 500)
         self.window.set_size_request(920, 600)
-        self.window.set_title("freerangefactory.org - boot ver. " + str(__version__))
+        self.window.set_title("freerangefactory.org - boot ver. " + version.boot_version)
 
         # make a 1X1 table to put the tabs in (this table is not really needed)
         table = gtk.Table(rows=1, columns=1, homogeneous=False)
@@ -887,6 +886,20 @@ class mk_gui:
         terminal = vte.Terminal()
         terminal.connect ("child-exited", lambda term: gtk.main_quit())
         terminal.fork_command()
+
+        # style the terminal
+        colours = [(0x2e2e, 0x3434, 0x3636),(0xcccc, 0x0000, 0x0000),
+                   (0x4e4e, 0x9a9a, 0x0606),(0xc4c4, 0xa0a0, 0x0000),
+                   (0x3434, 0x6565, 0xa4a4),(0x7575, 0x5050, 0x7b7b),
+                   (0x0606, 0x9820, 0x9a9a),(0xd3d3, 0xd7d7, 0xcfcf),
+                   (0x5555, 0x5757, 0x5353),(0xefef, 0x2929, 0x2929),
+                   (0x8a8a, 0xe2e2, 0x3434),(0xfcfc, 0xe9e9, 0x4f4f),
+                   (0x7272, 0x9f9f, 0xcfcf),(0xadad, 0x7f7f, 0xa8a8),
+                   (0x3434, 0xe2e2, 0xe2e2),(0xeeee, 0xeeee, 0xecec)]
+        foreground = gtk.gdk.Color(0, 0, 0)
+        background = gtk.gdk.Color(0xffff, 0xffff, 0xffff)
+        palette = [gtk.gdk.Color(*colour) for colour in colours]
+        terminal.set_colors(foreground, background, palette)
 
         # put the terminal in a scrollable window
         terminal_window = gtk.ScrolledWindow()

@@ -1,6 +1,11 @@
 import sys, os
 from subprocess import call
 
+try:
+    from boot_pkg import nanorc
+except:
+    pass
+
 # create a launcher file for boot which will go in the folder
 # /usr/share/applications/
 def make_desktop_launcher():
@@ -22,6 +27,11 @@ def build_all():
         call('sudo apt-get install ghdl gtkwave'.split())
         make_desktop_launcher()
 
+        # create a ~/.nanorc file to enable colors in nano.
+        nanorc.make()
+
+        # this is not necessary anymore. Pip is taking care of these dependencies
+        # see the file setup.py for more info.
         if False:
             call('sudo apt-get update'.split()) # update apt-get database
             call('sudo apt-get install python-pip'.split())
@@ -42,7 +52,6 @@ def build_all():
         print 'Operating system not supported.'
         pass
     print 'All done.\n'
-    return 0
-
+    return 0  
 
 

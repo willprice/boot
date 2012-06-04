@@ -5,13 +5,15 @@
 #
 # for help:
 # http://docs.python.org/distutils/setupscript.html
+from boot_pkg import version
 
 from distutils.core import setup
 import sys
 
+
 setup(
     name = 'boot',
-    version = '0.20',
+    version = version.boot_version,
     description = 'VHDL simulator and synthesis tool',
     author = 'free range factory',
     author_email = 'contact@freerangefactory.org',
@@ -22,6 +24,7 @@ setup(
     data_files=[('/usr/share/applications', ['boot_pkg/boot.desktop']), # dektop launcher
                 ('/usr/share/icons', ['boot_pkg/icns/boot_icn.png'])],      # icon
     scripts = ['boot'], # the executable 'boot' will be put it '/usr/local/bin'
+    install_requires=['Pygments', 'argparse', 'PyGTK', 'PyGObject'],
     license='GNU GPL License',
     long_description=open('README').read(),
     classifiers = [
