@@ -9,8 +9,8 @@ include CONTRIBUTE
 #recursive-include boot_pkg/icns *.png
 
 global-exclude test/*
-global-exclude build/*
-global-exclude dist/*
+#global-exclude build/*
+#global-exclude dist/*
 global-exclude *~
 
 

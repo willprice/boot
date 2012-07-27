@@ -4,7 +4,7 @@ from subprocess import call
 
 # create a _where folder and put in it two basic VHDL files as well as a
 # constraints file. This is just to help beginners to get started with boot
-def quick_start(_where):
+def make_vhdl_counter_project(_where):
 
     call('clear'.split())
 

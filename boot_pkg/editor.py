@@ -1,14 +1,17 @@
+# this is a simple text editor GUI used by boot for displaying and editing 
+# text files within boot.
 
 import pygtk, gtk, pango
 pygtk.require('2.0')
 
 from pygments.lexers import PythonLexer
 from pygments.styles.tango import TangoStyle
-from pygments.token import Name, Keyword
-
 
 # simple and pretty text editor
 class text_editor:
+    '''this is a simple text editor GUI used by boot for displaying and editing 
+       text files within boot.
+    '''
 
     def delete_event(self, widget, event, data=None):
         return False
@@ -35,7 +38,8 @@ class text_editor:
             if token not in styles:
                 styles[token] = self.textbuffer.create_tag()
             start = self.textbuffer.get_end_iter()
-            self.textbuffer.insert_with_tags(start, value.encode('utf-8'), styles[token])
+            self.textbuffer.insert_with_tags(start, value.encode('utf-8'),
+                                             styles[token])
 
         # color the text
         for token, tag in styles.iteritems():
@@ -72,7 +76,11 @@ class text_editor:
         self.window2.connect("delete_event", self.delete_event)
         self.window2.connect("destroy", self.destroy)
         win_title = self.local_file
-        if len(win_title)>50:win_title='... '+win_title[len(win_title)-50:len(win_title)]
+
+        # shorten the title if too long
+        if len(win_title)>50:
+            win_title='... ' +  win_title[len(win_title)-50:len(win_title)]
+
         self.window2.set_title(win_title)
         self.window2.set_border_width(3)
         self.window2.set_size_request(680, 500)

@@ -14,7 +14,10 @@
 
 # add a compile button or bind a return key to it.                              DONE
 
-# add a compile button.
+# add a compile and simulate button. For this task I need to rewrite the        DONE
+  compile and simulate process.
+
+# write two auto check boxes for Compile and Compile & Simulate tasks           UNDER DEV.
 
 # add a button or text to open the Synthesis Report file counter_top.syr        DONE
 
@@ -31,7 +34,10 @@
   in a new tab might be a little too intrusive.
 
 # find a way to pull vhdl code from opencores.org in a tab. It would be also 
-  pretty cool to become able to import opencores code in your src folder.
+  pretty cool to be able to import opencores code in your src folder.
+  For this task, it would be good to be able to load opencores website and
+  find a way customize the way all pages look. No banners, etc. With webkit 
+  this should be possible.
 
 # modify things so that pip is the default installer.                           DONE
 
@@ -39,4 +45,16 @@
 
 # change the way new versions of boot are checked and use pip                   DONE
 
-# add a method to get pip to install all boot dependencies via setup.py
+# add a method to get pip to install all boot dependencies via setup.py         DONE
+
+# fix compiling process now broken and the accelerators of gtkwave now          DONE
+  interfering with nano editor.
+
+
+
+
+
+
+
+
+

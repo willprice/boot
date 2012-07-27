@@ -16,7 +16,7 @@
    sodipodi:version="0.32"
    inkscape:version="0.48.2 r9819"
    version="1.0"
-   sodipodi:docname="boot.svg"
+   sodipodi:docname="boot_icn.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape">
   <defs
      id="defs2758">
@@ -989,10 +989,10 @@
      height="128px"
      width="128px"
      showgrid="true"
-     inkscape:window-width="1366"
-     inkscape:window-height="714"
+     inkscape:window-width="1280"
+     inkscape:window-height="1000"
      inkscape:window-x="0"
-     inkscape:window-y="26"
+     inkscape:window-y="24"
      inkscape:window-maximized="1">
     <inkscape:grid
        id="GridFromPre046Settings"
@@ -1018,7 +1018,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -1027,7 +1027,7 @@
      inkscape:groupmode="layer"
      id="layer1">
     <g
-       transform="matrix(1.0357143,0,0,1.1354166,6,7)"
+       transform="matrix(1.0357143,0,0,1.1666667,6,4)"
        id="g4493"
        style="opacity:0.5;fill:#000000;fill-opacity:1;filter:url(#filter10229)"
        inkscape:export-filename="/home/fabrizio/Dropbox/free_range_factory/boot/boot_pkg/icns/boot0.png"
@@ -1059,7 +1059,8 @@
       <path
          style="fill:#000000;fill-opacity:1"
          id="path4505"
-         d="M 3,0 C 1.35,0 0,1.35 0,3 L 0,93 C 0,94.65 1.35,96 3,96 L 109,96 C 110.65,96 112,94.65 112,93 L 112,3 C 112,1.35 110.65,0 109,0 L 3,0 z " />
+         d="M 3,0 C 1.35,0 0,1.35 0,3 l 0,90 c 0,1.65 1.35,3 3,3 l 106,0 c 1.65,0 3,-1.35 3,-3 l 0,-90 c 0,-1.65 -1.35,-3 -3,-3 L 3,0 z"
+         inkscape:connector-curvature="0" />
     </g>
     <path
        d="M 10.999999,8.079208 C 9.3500001,8.079208 8,9.5361386 8,11.316832 L 8,108.44554 C 8,110.22623 9.3500001,111.68317 10.999999,111.68317 L 117.00001,111.68317 C 118.64999,111.68317 120,110.22623 120,108.44554 L 120,11.316832 C 120,9.5361386 118.64999,8.079208 117.00001,8.079208 L 10.999999,8.079208 z "

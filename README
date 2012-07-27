@@ -11,7 +11,8 @@ available `here <http://www.freerangefactory.org/site/pmwiki.php/Main/BootDoc>`_
 Download and Install boot
 =========================
 
-Under Linux, boot can be downloaded and installed via the terminal command::
+Under Linux, boot can be downloaded and installed using ``pip``. First install 
+``pip`` and after install boot. via the terminal command::
 
     sudo apt-get install python-pip
     pip install boot
@@ -26,12 +27,12 @@ boot can be updated with the command::
 How to Use boot 
 ===============
 
-The first time you use boot you need to built and install its dependencies. You
- can do that via the terminal command::
+The first time you use boot you need to built and install its dependencies. You 
+can do that via the terminal command::
 
-    boot -b
+    boot --build
 
-boot can be started via the terminal command::
+boot can be started via its desktop icon or via the terminal command::
 
     boot
 
@@ -40,14 +41,13 @@ Have a look at the Help Tab for the complete boot documentation.
 Contribute to boot
 ==================
 
-If you think you want to contribute to the development of boot do not
- hesitate to contact us via the
- `free range factory website <http://www.freerangefactory.org>`_.
+If you think you want to contribute to the development of boot do not 
+hesitate to contact us via the `free range factory website <http://www.freerangefactory.org>`_.
 
 License and Copyright
 =====================
 
-boot is released under the GNU GPL license.
- See included LICENSE and COPYRIGHT files.
+boot is released under the GNU GPL license. 
+See included LICENSE and COPYRIGHT files.
 
 

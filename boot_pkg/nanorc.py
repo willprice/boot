@@ -1,6 +1,4 @@
-
 import os
-from subprocess import call
 
 _content1 = '''
 ## Nanorc files
@@ -82,7 +80,7 @@ color blue "--.*$"
 '''
 
 # create a nano configuration file named ".nanorc" in ~/
-# IMPORTANT: if you already have this file. Nothing will be done 
+# IMPORTANT: if you already have this file. NOTHING WILL BE DONE. 
 def make():
     if os.path.isfile(os.getenv("HOME")+'/.nanorc'):
         print 'WARNING. "~/.nanorc" file already exist. Nothing will be done.'

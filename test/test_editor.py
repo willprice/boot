@@ -4,9 +4,9 @@
 import sys,os
 sys.path.insert(0,os.path.abspath(__file__+"/../../boot_pkg"))
 
-from editor import *
+import editor
 
 if __name__ == '__main__':
 
     _fl = os.path.join(os.getcwd(),'test_editor.py')
-    text_editor(_fl).start()
+    editor.text_editor(_fl).start()

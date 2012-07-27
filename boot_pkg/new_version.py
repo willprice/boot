@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import xmlrpclib, pip
 import argparse
 from pkg_resources import parse_version
@@ -9,32 +7,45 @@ from pkg_resources import parse_version
 def check_on_pypi():
 
     parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('-a', '--all', dest='all', action='store_true', default=False)
-    parser.add_argument('-m', '--mirror', dest='mirror', default='http://pypi.python.org/pypi')
+
+    parser.add_argument('-a', '--all', dest='all', action='store_true', 
+                        default=False)
+
+    parser.add_argument('-m', '--mirror', dest='mirror', 
+                        default='http://pypi.python.org/pypi')
+
     args = parser.parse_args()
     pypi = xmlrpclib.ServerProxy(args.mirror)
     
     for local in pip.get_installed_distributions():
+        # search for "boot" locally installed
         if local.project_name == 'boot':
             try:
-                # find 
+                # search for "boot" remotely on Pypi 
                 available = pypi.package_releases(local.project_name)
             except:
-                return 'Problems in checking the pypi server. Maybe connection is down.'
+                return 'Problems in checking the pypi server. '+\
+                       'Maybe the connection is down.'
             if available:
                 # compare local and remote versions
-                comparison = cmp(parse_version(available[0]), parse_version(local.version))
+                comparison = cmp(parse_version(available[0]), 
+                                 parse_version(local.version))
+
                 if comparison == 0:
-                    return 'Current version of "boot" is %s and it is the newest version.' % local.version
+                    return 'Current version of "boot" is %s '+\
+                           'and it is the newest version.' % local.version
+
                 elif comparison < 0:
                     return 'Pypi server has an older version of "boot".'
+
                 # new version available for download
                 else:
-                    return 'Newer version found. Run the terminal command: sudo pip install --upgrade boot'
+                    return 'Newer version found.\n'+\
+                      'Run the terminal command: sudo pip install --upgrade boot'
             else:
                 return 'No package named "boot" is found on pypi servers.'
-    return 'No package named "boot" installed in your machine. Run the terminal command: sudo pip install boot'
+
+    return 'No package named "boot" installed in your machine.\n'+\
+           'Run the terminal command: sudo pip install boot'
    
-#if __name__ == '__main__':
-#    print check_on_pypi()
 

@@ -6,19 +6,26 @@ try:
 except:
     pass
 
-# create a launcher file for boot which will go in the folder
-# /usr/share/applications/
 def make_desktop_launcher():
+    '''copy the boot launcher file from /usr/share/applications/ to 
+       your ~/Desktop.
+    '''
     try:
-        cmd = 'cp /usr/share/applications/boot.desktop ' + os.getenv("HOME")+'/Desktop/'
+        cmd = 'sudo chmod +x /usr/share/applications/boot.desktop'
+        call(cmd.split())
+        cmd = 'cp /usr/share/applications/boot.desktop ' + \
+               os.getenv("HOME") + '/Desktop/'
         call(cmd.split()) 
         print 'Created desktop launcher file.'      
     except:
         print 'Problems in creating a desktop launcher file.'
     return 0
 
-# Download and install everything that is needed for boot to function
+
 def build_all():
+    '''Download and install everything that is needed for boot to function 
+       properly.
+    '''
     if 'linux' in sys.platform:                                       # LINUX OS
         call('clear')
         print 'Downloading and install necessary packages.'
@@ -35,9 +42,12 @@ def build_all():
         if False:
             call('sudo apt-get update'.split()) # update apt-get database
             call('sudo apt-get install python-pip'.split())
-            call('sudo apt-get install python-gtk2 python-gobject'.split())
             call('sudo apt-get install gtk2-engines-pixbuf'.split())
             call('sudo pip install argparse pygments'.split())
+
+        # it is better to install pygtk from apt-get because pip seems to fail
+        if True:
+            call('sudo apt-get install python-gtk2 python-gobject'.split())
 
     elif 'darwin' in sys.platform:                                  # APPLE OS X
         print 'Operating system not supported.'
