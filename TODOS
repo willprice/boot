@@ -30,11 +30,11 @@
 # add save and close button to the txt viewer. In this way the synthesis script DONE
   will be editable by the user.
 
-# find a way to pull the book "free range factory" from the Internet, doing so
+# find a way to pull the book "free range factory" from the Internet, doing so  NOT IMPORTANT
   in a new tab might be a little too intrusive.
 
-# find a way to pull vhdl code from opencores.org in a tab. It would be also 
-  pretty cool to be able to import opencores code in your src folder.
+# find a way to pull vhdl code from opencores.org in a tab. It would be also    DONE but fix html look on http://opencores.org/project,pcie_sg_dma
+  pretty cool to be able to import opencores code in your src folder.                also, the cookies between mechanize and webkit are not shared (password need twice)
   For this task, it would be good to be able to load opencores website and
   find a way customize the way all pages look. No banners, etc. With webkit 
   this should be possible.
@@ -50,7 +50,7 @@
 # fix compiling process now broken and the accelerators of gtkwave now          DONE
   interfering with nano editor.
 
-
+# make a better icon for boot
 
 
 

@@ -1,10 +1,11 @@
 import xmlrpclib, pip
-import argparse
 from pkg_resources import parse_version
 
 # check for new versions of "boot" on the Pypi server.
 # this function just return suggestions
 def check_on_pypi():
+
+    import argparse
 
     parser = argparse.ArgumentParser(description='Process some integers.')
 
@@ -32,8 +33,8 @@ def check_on_pypi():
                                  parse_version(local.version))
 
                 if comparison == 0:
-                    return 'Current version of "boot" is %s '+\
-                           'and it is the newest version.' % local.version
+                    return 'Current version of "boot" is '+ local.version + \
+                           ' and it is the newest version.'
 
                 elif comparison < 0:
                     return 'Pypi server has an older version of "boot".'

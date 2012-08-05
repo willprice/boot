@@ -48,6 +48,8 @@ def build_all():
         # it is better to install pygtk from apt-get because pip seems to fail
         if True:
             call('sudo apt-get install python-gtk2 python-gobject'.split())
+            call('sudo apt-get install python-jswebkit'.split())
+
 
     elif 'darwin' in sys.platform:                                  # APPLE OS X
         print 'Operating system not supported.'

@@ -1,10 +1,10 @@
 import pygtk, gtk, gobject, glob, os, time
-import ConfigParser, webkit
+import ConfigParser, webkit, mechanize
 import vte
 
 from subprocess import Popen, PIPE, STDOUT
 
-import version, new_version
+import version, new_version, directory, opencores
 import tcl
 
 pygtk.require('2.0')
@@ -618,6 +618,215 @@ class mk_gui:
         self.update_boot_msg.set_text(_answer)
         return 0
 
+
+    # set of methods for the OpenCores tab
+    def oc_go_back(self, widget, data=None):
+        self.oc_browser.go_back()
+    
+    def oc_go_forward(self, widget, data=None):
+        self.oc_browser.go_forward()
+    
+    def oc_load_www(self, widget, url):
+        try:
+            url.index("://")
+        except:
+            url = "http://" + url
+        self.oc_www_adr_bar.set_text(url)
+        self.oc_browser.open(url)
+    
+    def oc_load_www_bar(self, widget):	
+        url = self.oc_www_adr_bar.get_text()
+        self.oc_load_www(widget, url)
+    
+    def oc_update_buttons(self, widget, data=None):
+        self.oc_www_adr_bar.set_text(widget.get_main_frame().get_uri() )
+        self.oc_back_button.set_sensitive(self.oc_browser.can_go_back())
+        self.oc_forward_button.set_sensitive(self.oc_browser.can_go_forward())
+    
+    def oc_load_progress_amount(self, oc_webview, amount):
+        self.oc_progress.set_fraction(amount/100.0)
+    
+        js_code = """
+    // check if JQuery is loaded
+    if (typeof jQuery != 'undefined'){
+    
+        // check if the title of the page contains the word 'OpenCores'
+        if ($('title').text().indexOf("OpenCores")!=-1){
+    
+            // Execure JQuery commands    
+            $(document).ready(function(){
+           
+               // hide unwanted portions of the page
+               $(".main .top").hide()
+               $(".main .line").hide()
+               $(".main .mid .mainmenu").hide()
+               $(".main .mid .content .banner").hide()
+               $(".main .mid .content .home-right").hide()
+               $(".main .mid .content").next().hide()
+               
+               // style stuff
+               $("body").css({"width":"95%"});
+               $("body .main").css({"width":"100%","border-radius": "0pt"});
+               $("body .main .mid").css({"width":"100%"});
+    
+               $(".main .mid .content h1.projects ").each(function(i) {
+                                            $(this).css({"color":"#999797", 
+                                            "textShadow":"#999797 0px 0px 0px",
+                                            "width": "100%"});
+                                            });
+    
+               $("body .content").css({"width":"100%","padding-bottom":"50pt"});
+               $("body .content").children().last().css({"height":"30pt"});
+               $("body").css({"backgroundColor":"#FFF"});
+        
+               // turn off some css3 attributes 
+               $(".main").css('boxShadow', '0px 0px 0px 0px #FFF');
+               $(".main").css('MozBoxShadow', '0px 0px 0px 0px #FFF');
+               $(".main").css('WebkitBoxShadow', '0px 0px 0px #FFF');
+            });
+        }  
+    }
+    """
+        try:
+            pass
+            oc_webview.execute_script(js_code)
+        except:
+            pass
+
+    def oc_load_started(self, webview, frame):
+        self.oc_scroller.hide() # hide web page during page loading
+        self.oc_progress.set_visible(True)
+    
+    def oc_load_finished(self, webview, frame):
+        self.oc_scroller.show() # show web page once loaded
+        self.oc_progress.set_visible(False)
+    
+    def oc_download(self, webview, download):
+    
+        import threading
+    
+        saveas = gtk.FileChooserDialog(title=None,
+                 action=gtk.FILE_CHOOSER_ACTION_SAVE,
+                 buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+                          gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+    
+        # propose the current working directory
+        _dir=os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+        saveas.set_current_folder(_dir)
+
+        # get url under the mouse and propose it as file name
+        downloadfrom = download.get_network_request().get_uri()
+
+        # download some OpenCores link in a special way
+        if 'http://opencores.org/download,' in downloadfrom:
+        
+            # this is an OpenCores download link (a link to a tar.gz file)
+            dl_fl = downloadfrom.split('http://opencores.org/download,')[-1] + '.tar.gz'
+        else:
+        
+            # normal link
+            if downloadfrom.endswith('.html') or downloadfrom.endswith('.htm'):
+                dl_fl = downloadfrom.split('/')[-1]
+            else:
+                dl_fl = downloadfrom.split('/')[-1] + '.html'
+
+        # propose a suitable name
+        saveas.set_current_name(dl_fl) 
+
+        saveas.set_default_response(gtk.RESPONSE_OK)
+        resp = saveas.run()
+    
+        if resp == gtk.RESPONSE_OK:
+            dl_fl = saveas.get_filename()
+        saveas.destroy()
+    
+        if resp == gtk.RESPONSE_OK:
+
+            # get the selected working directory
+            dl_dir = saveas.get_current_folder()
+
+            # check if you have login data and ask if necessary
+            if not self.oc_login_data[1]:
+                self.oc_login_data = self.oc_loginBox()
+
+            # exit for no password entered 
+            if not self.oc_login_data[1]:
+                print 'No password entered.'
+                return 1
+
+            # remember that at the end if mkgui.__init__() you have created the
+            # object "self.oc_website" for the OpenCores website access.
+
+            # login if necessary
+            if 'yes' in self.oc_website.login_needed():
+                _answer = self.oc_website.login(self.oc_login_data)
+                if _answer == 1:
+                    print 'Loging failed.'
+                    self.oc_login_data = ['','']
+                    return 1
+
+            # download (in the same thread)
+            #self.oc_website.download(downloadfrom, dl_dir, dl_fl)
+
+            # download (multi-threading version)
+            mythread = threading.Thread(target = self.oc_website.download,
+                                       args = (downloadfrom, dl_dir, dl_fl))
+            mythread.start()
+            self.on_warn('File succesfully downloaded')
+    
+
+    # this is the login box for requesting OpenCores login and password
+    def oc_loginBox(self):
+        dialog = gtk.MessageDialog(
+            None,
+            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+            gtk.MESSAGE_INFO,
+            gtk.BUTTONS_OK_CANCEL,
+            None)
+
+        dialog.set_title('OpenCores Login')
+        dialog.set_markup('Enter your <b>OpenCores log information</b>.')
+    
+        #create the text input field
+        login = gtk.Entry()
+        password = gtk.Entry()
+        login.set_visibility(True)
+        password.set_visibility(False)
+
+        #allow the user to press enter to do ok
+        #password.connect("activate", responseToDialog, dialog, gtk.RESPONSE_OK)
+    
+        #create a horizontal box to pack the entry and a label
+        hbox1 = gtk.HBox()
+        hbox1.pack_start(gtk.Label("Login:          "), False, 5, 5)
+        hbox1.pack_end(login)
+    
+        hbox2 = gtk.HBox()
+        hbox2.pack_start(gtk.Label("Password:"), False, 5, 5)
+        hbox2.pack_end(password)
+    
+        #some secondary text
+        dialog.format_secondary_markup("This information will be used for <i>temporary identification</i> purposes.")
+        #add it and show it
+        dialog.vbox.pack_end(hbox2, True, True, 0)
+        dialog.vbox.pack_end(hbox1, True, True, 0)
+
+        dialog.show_all()
+
+        #go
+        response = dialog.run()
+        login_info = ['','']
+
+        if response == gtk.RESPONSE_CANCEL:
+            print "Exiting."
+        else:
+            print "Request submitted."
+            login_info[0] = login.get_text()
+            login_info[1] = password.get_text()
+
+        dialog.destroy()
+        return login_info
+
     # set of methods for the help tab browser
     def go_back(self, widget, data=None):
         self.browser.go_back()
@@ -661,8 +870,10 @@ class mk_gui:
     # some movement
     def comp_bar_timeout(self,pbobj):
         if self.comp_bar_go: # bar enabled
+            self.comp_bar.set_visible(True) # show compile progress bar
             pbobj.comp_bar.pulse()
         else: # bar disabled
+            self.comp_bar.set_visible(False) # hide compile progress bar
             pass
         return True
 
@@ -671,6 +882,24 @@ class mk_gui:
         gobject.source_remove(self.comp_bar_timer)
         self.comp_bar_timer = 0
         gtk.main_quit()
+
+    # This is a timeout function that runs every 600 ms if the auto-compile
+    # check box is ticked. Code is automatically compile everytime any VHDL 
+    # file is saved.
+    def auto_compile_timeout(self,widget):
+        if self.chk1.get_active(): # auto-compile is one
+            wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+            # check if vhdl files where changed
+            if directory.src_dir_modified(wd):
+                print 'Auto-compiling...'
+                # COMPILE
+                self.compileSimulateAction(widget, 'Compile')
+            else:
+                print '[',time.ctime(), '] No VHDL files were modified. Nothing to do.'
+
+        else: # auto-compile is off
+            pass
+        return True
 
     # constructor for the whole GUI
     def __init__(self):
@@ -819,12 +1048,15 @@ class mk_gui:
         # make check box "auto compile"
         self.chk1 = gtk.CheckButton("auto")
         self.chk1.set_active(False)
-        self.chk1.set_sensitive(False)
+
         tooltips.set_tip(self.chk1,'Automatically compile your design '+\
                                  'every time a vhdl file in "src/" is modified')
 
         # let's trigger an action when the check box changes
         #self.chk1.connect("clicked", self.run_compile_and_sim, False)
+
+        # Create a timer for the auto-compile check box
+        gobject.timeout_add(600,self.auto_compile_timeout, self)
 
         fixed2 = gtk.Fixed()
         fixed2.put(self.chk1,-70,-1)
@@ -1037,6 +1269,66 @@ class mk_gui:
         # load the whole Synthesize tab content
         notebook.append_page(Vbox_syn1, gtk.Label('Synthesize'))
 
+        ######## OPENCORES TAB ##########
+        self.oc_scroller = gtk.ScrolledWindow()
+        self.oc_browser = webkit.WebView()
+    
+        oc_settings = self.oc_browser.get_settings()
+        oc_settings.set_property('enable-default-context-menu', True)
+    
+        self.oc_browser.connect("load-progress-changed", self.oc_load_progress_amount)
+        self.oc_browser.connect("load-started", self.oc_load_started)
+        self.oc_browser.connect("load-finished", self.oc_load_finished)
+        self.oc_browser.connect("load_committed", self.oc_update_buttons)
+        self.oc_browser.connect("download_requested", self.oc_download)
+        
+        oc_prj_button = gtk.Button('OpenCores')
+        oc_login_button = gtk.Button('Login')
+        oc_account_button = gtk.Button('My Account')
+        oc_faq_button = gtk.Button('FAQ')
+    
+        oc_prj_button.connect("clicked", self.oc_load_www,'http://opencores.org/projects')
+        oc_login_button.connect("clicked", self.oc_load_www,'http://opencores.org/login')
+        oc_account_button.connect("clicked", self.oc_load_www,'http://opencores.org/acc')
+        oc_faq_button.connect("clicked", self.oc_load_www,'http://opencores.org/faq')
+    
+        self.oc_www_adr_bar = gtk.Entry()
+        self.oc_www_adr_bar.connect("activate", self.oc_load_www_bar)
+        oc_hbox = gtk.HBox()
+        oc_vbox = gtk.VBox()
+        self.oc_progress = gtk.ProgressBar()
+        self.oc_back_button = gtk.ToolButton(gtk.STOCK_GO_BACK)
+        self.oc_back_button.connect("clicked", self.oc_go_back)
+        self.oc_forward_button = gtk.ToolButton(gtk.STOCK_GO_FORWARD)
+        self.oc_forward_button.connect("clicked", self.oc_go_forward)
+    
+        # put stuff together
+        oc_hbox.pack_start(self.oc_back_button,False, False,2)
+        oc_hbox.pack_start(self.oc_forward_button,False, False)
+    
+        oc_hbox.pack_start(oc_prj_button,False, False,2)
+        oc_hbox.pack_start(oc_login_button,False, False,2)
+        oc_hbox.pack_start(oc_account_button,False, False,2)
+        oc_hbox.pack_start(oc_faq_button,False, False,2)
+    
+        oc_hbox.pack_start(self.oc_www_adr_bar,True, True,2)
+    
+        oc_vbox.pack_start(oc_hbox,False, False,4)
+        oc_vbox.pack_start(self.oc_scroller,True, True,4)
+        oc_vbox.pack_end(self.oc_progress,False, False,4)
+        self.oc_scroller.add(self.oc_browser)
+
+        notebook.append_page(oc_vbox, gtk.Label('OpenCores')) # load
+        
+        # Load initial page
+        oc_default_www = 'http://opencores.org/projects'
+        self.oc_www_adr_bar.set_text(oc_default_www)
+
+        self.oc_browser.open(oc_default_www)
+        self.oc_back_button.set_sensitive(False)
+        self.oc_forward_button.set_sensitive(False)
+    
+ 
         ######## HELP TAB ##########
         # make help tab (this is basically a web browser)
         scroller = gtk.ScrolledWindow()
@@ -1168,8 +1460,24 @@ class mk_gui:
         # NOTE: this will overwrite lots of GUI variables.
         self.load_local_configuration_file()
 
-        # show all the widgets
+        ################# show all the widgets ######################
         self.window.show_all()
+        #############################################################
+        # hide compile progress bar
+        self.comp_bar.set_visible(False)
+
+        ######## POPULATE OPENCORES TAB ########
+        # create a list where to store your OpenCores website login and password
+        self.oc_login_data = ['','']
+
+        # create a website object to use to authenticate and download stuff 
+        # from the OpenOffice website using mechanize
+        self.oc_website = opencores.open_cores_website()
+
+        ######## GENERAL PURPOSE ACTIONS ########
+        # first time boot starts up, let's create a suitable environment
+        wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+        directory.dir_make_sure(wd)
 	
 
 

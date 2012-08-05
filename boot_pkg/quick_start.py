@@ -141,9 +141,10 @@ TIMESPEC "TS_fpga_clk" = PERIOD "fpga_clk" 83 ns HIGH 50%;
 '''
     if not os.path.isdir(_where):
         try:
-            os.path.os.mkdir(os.path.join(_where)) # make a dir called _where
+            os.path.os.mkdir(_where) # make a dir called _where
+            os.path.os.mkdir(os.path.join(_where,'build')) # make a dir called build inside _where
         except:
-            print 'Not able to create the directory:',_where
+            print 'Not able to create the directory:',_where, 'and its content.'
             return 1
     try:
         open(os.path.join(_where,'counter_top.vhdl'),'w').write(content_fl1)

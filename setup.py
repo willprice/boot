@@ -24,8 +24,8 @@ setup(
     data_files=[('/usr/share/applications', ['boot_pkg/boot.desktop']), # dektop launcher
                 ('/usr/share/icons', ['boot_pkg/icns/boot_icn.png'])],      # icon
     scripts = ['boot'], # the executable 'boot' will be put it '/usr/local/bin'
-    #install_requires=['Pygments', 'argparse', 'PyGTK', 'PyGObject'],
-    install_requires=['Pygments', 'argparse'],
+    install_requires=['Pygments', 'argparse','mechanize'],
+    # remember that some boot depencencies will be installed with "sudo boot -b"
     license='GNU GPL License',
     long_description=open('README').read(),
     classifiers = [

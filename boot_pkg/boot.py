@@ -12,7 +12,7 @@ Author:   Fabrizio Tappero, fabrizio.tappero<at>gmail.com
 License:  GNU General Public License
 '''
 
-import gtk, argparse
+import gtk
 from multiprocessing import Process, Pipe
 
 import gui 
@@ -53,29 +53,32 @@ def boot():
 # main
 def main():
 
+    import argparse
+
     # load parser for help options
-    parser = argparse.ArgumentParser(
+    _parser = argparse.ArgumentParser(
              description = 'Program to compile, simulate and synthesize '+\
                            'your VHDL code.',
              epilog = "Program made by: freerangefactory.org")
 
-    parser.add_argument('-b','--build', required=False, dest='build', 
+    _parser.add_argument('-b','--build', required=False, dest='build', 
                         action = 'store_const', const = True, default = False,
                         help = 'Download and install necessary packages ' +\
                                '(Internet connection required).')
 
-    parser.add_argument('-qs','--quick_start', required = False, 
+    _parser.add_argument('-qs','--quick_start', required = False, 
                         dest = 'quick_start', action = 'store_const', 
                         const = True, default = False,
                         help = 'Build a simple VHDL project.')
 
-    args = parser.parse_args()
+    args = _parser.parse_args()
 
     # load stuff accordingly
     try:
         if args.build:
             build_all()
         elif args.quick_start:
+            # create a 'src' folder with a VHDL counter project in it
             quick_start.make_vhdl_counter_project('src')
         else:
             # redirect standard output
