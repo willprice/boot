@@ -1,10 +1,17 @@
-
+#
+# this file is part of the software tool BOOT
+# URL: freerangefactory.org
+# (C) 2012 Fabrizio Tappero
+#
 import os
 from subprocess import call
 
-# create a _where folder and put in it two basic VHDL files as well as a
-# constraints file. This is just to help beginners to get started with boot
 def make_vhdl_counter_project(_where):
+    ''' make_vhdl_counter_project(_where):
+        Create a _where folder and put in it two basic VHDL files as well as a
+        constraints file. This is just to help beginners to get started 
+        with boot.
+    '''
 
     call('clear'.split())
 
@@ -141,8 +148,10 @@ TIMESPEC "TS_fpga_clk" = PERIOD "fpga_clk" 83 ns HIGH 50%;
 '''
     if not os.path.isdir(_where):
         try:
-            os.path.os.mkdir(_where) # make a dir called _where
-            os.path.os.mkdir(os.path.join(_where,'build')) # make a dir called build inside _where
+            # make a dir called _where
+            os.path.os.mkdir(_where)
+            # make a dir called build inside _where
+            os.path.os.mkdir(os.path.join(_where,'build'))
         except:
             print 'Not able to create the directory:',_where, 'and its content.'
             return 1

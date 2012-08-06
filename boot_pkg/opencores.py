@@ -1,7 +1,12 @@
+#
+# this file is part of the software tool BOOT
+# URL: freerangefactory.org
+# (C) 2012 Fabrizio Tappero
+#
 import os, mechanize, cookielib
 
 class open_cores_website():
-    ''' Class to login and download stuff from "www.opencores.org"
+    ''' Class to login and download stuff from: "www.opencores.org"
         Cookies are automatically turned on.
     '''   
 
@@ -20,7 +25,7 @@ class open_cores_website():
         
 
     def login(self, login_data):
-        ''' Method to login on "www.opencores.org/login"
+        ''' Method to login on "www.opencores.org/login".
         '''
         # parse login data
         self.user = login_data[0]
@@ -70,7 +75,6 @@ class open_cores_website():
             the page will be saved in a file.
         ''' 
 
-
         # download the file
         self.br.open(dl_url)
 
@@ -86,13 +90,12 @@ class open_cores_website():
 # in a real program this function gets replaced with a simple gui window
 def get_login_data():
     pass
-    #return ['mark', 'loou']
-    return ['vincent_', '2zpyasqk']
-
+    return ['mark', 'strange']
 
 if __name__ == '__main__':
 
-    # procedure to test the "open_cores_website" class.
+    ###### procedure to test the "open_cores_website" class. ########
+
     dl_dir = '/tmp'
     login_data = ['','']
 
@@ -124,12 +127,11 @@ if __name__ == '__main__':
             dl_fl = dl_url.split('/')[-1] + '.html'
 
     # download
-    website.download('http://opencores.org/download,othellogame', dl_dir, dl_fl)
-    
+    website.download(dl_url, dl_dir, dl_fl)
 
     # done
     print 'bye bye'
-    
+
 # typical output:
 #
 # Login needed.
@@ -141,7 +143,6 @@ if __name__ == '__main__':
 # 
 # You seem already logged in.
 # /tmp/opencores.org.html has been downloaded.
-# 
-# bye bye
+
 
 

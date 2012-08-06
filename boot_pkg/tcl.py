@@ -1,8 +1,17 @@
+#
+# this file is part of the software tool BOOT
+# URL: freerangefactory.org
+# (C) 2012 Fabrizio Tappero
+#
 import os
 
-# generate and save a Xilinx ISE xtclsh script
+
 def make_xilinx(syn_out_dir, tld_file, vhdl_files, constraints_file,
                        dev_family,dev_device, dev_package, dev_speed):
+    ''' make_xilinx(syn_out_dir, tld_file, vhdl_files, constraints_file,
+                       dev_family,dev_device, dev_package, dev_speed):
+        Generate and save a Xilinx ISE xtclsh script.
+    '''
 
     # formal vhdl file list
     vhdl_files = '[ list ../' + ' ../'.join(vhdl_files) + ' ]'

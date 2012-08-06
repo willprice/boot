@@ -1,9 +1,13 @@
+#
+# this file is part of the software tool BOOT
+# URL: freerangefactory.org
+# (C) 2012 Fabrizio Tappero
+#
+# Xilinx devices list:
+# http://www.xilinx.com/support/index.htm
 
-# Xilinx devices
-# # http://www.xilinx.com/support/index.htm
-
+dev_manufacturer  = ['Xilinx'] # now, only Xilinx devices are supported
 #dev_manufacturer  = ['Xilinx', 'Altera', 'Actel']
-dev_manufacturer  = ['Xilinx'] 
 
 dev_family=['Spartan6','Spartan3','Spartan3A','Spartan3E','Artix','Kintex',
             'Virtex4','Virtex5','Virtex6','Virtex7','Zynq','CoolRunner',

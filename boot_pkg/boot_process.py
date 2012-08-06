@@ -1,3 +1,8 @@
+#
+# this file is part of the software tool BOOT
+# URL: freerangefactory.org
+# (C) 2012 Fabrizio Tappero
+#
 import time, glob, os
 from subprocess import Popen, PIPE, STDOUT
 
@@ -141,9 +146,5 @@ def comp_and_sim(conn):
             conn.send('End processing\n')  
 
     return 0
-
-
-
-
 
 

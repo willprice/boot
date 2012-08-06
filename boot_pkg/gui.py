@@ -1,3 +1,8 @@
+#
+# this file is part of the software tool BOOT
+# URL: freerangefactory.org
+# (C) 2012 Fabrizio Tappero
+#
 import pygtk, gtk, gobject, glob, os, time
 import ConfigParser, webkit, mechanize
 import vte
@@ -901,6 +906,29 @@ class mk_gui:
             pass
         return True
 
+    # This is a timeout function that runs every 600 ms if the auto_compile_and_simulate
+    # check box is ticked. Code is automatically compiled and simulated every 
+    # time any VHDL file is saved.
+    def auto_compile_and_simulate_timeout(self,widget):
+        if self.chk2.get_active():
+            wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+            # check if vhdl files where changed
+            if directory.src_dir_modified(wd):
+                print 'Auto-compiling and simulating...'
+                # COMPILE
+                self.compileSimulateAction(widget, 'Compile & Simulate')
+            else:
+                print '[',time.ctime(), '] No VHDL files were modified. Nothing to do.'
+
+        else: # auto-compile and simulate is off
+            pass
+        return True
+
+
+
+
+
+
     # constructor for the whole GUI
     def __init__(self):
 
@@ -947,7 +975,7 @@ class mk_gui:
         terminal_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         terminal_window.add(terminal)
 
-        # make a resizable panel
+        # make a re-sizable panel
         vpaned = gtk.VPaned()
         vpaned.pack1(terminal_window, shrink=True)
         vpaned.pack2(table, shrink=True)
@@ -1052,8 +1080,6 @@ class mk_gui:
         tooltips.set_tip(self.chk1,'Automatically compile your design '+\
                                  'every time a vhdl file in "src/" is modified')
 
-        # let's trigger an action when the check box changes
-        #self.chk1.connect("clicked", self.run_compile_and_sim, False)
 
         # Create a timer for the auto-compile check box
         gobject.timeout_add(600,self.auto_compile_timeout, self)
@@ -1101,13 +1127,15 @@ class mk_gui:
         # make check box "auto compile & simulate"
         self.chk2 = gtk.CheckButton("auto")
         self.chk2.set_active(False)
-        self.chk2.set_sensitive(False)
+        self.chk2.set_sensitive(True)
         tooltips.set_tip(self.chk2, 
                          'Automatically compile and simulate your design '+\
                          'every time a vhdl file in "src/" is modified')
 
-        # let's trigger an action when the check box changes
-        #self.chk2.connect("clicked", self.run_compile_and_sim, False)
+        # WORK IN PROGRESS
+
+        # Create a timer for the auto-compile and simulate check box self.chk2
+        gobject.timeout_add(600,self.auto_compile_and_simulate_timeout, self)
 
         fixed3 = gtk.Fixed()
         fixed3.put(self.chk2,-145,-1)
@@ -1115,9 +1143,6 @@ class mk_gui:
         Hbox4.pack_end(fixed3, False, False, 0)
         Vbox2.pack_start(Hbox4, False, False, 0)
 
-
-        # let's trigger an action when the simulation option field changes
-        #self.sim_opt_entry.connect("activate", self.run_compile_and_sim, True)
 
         # load socket into Simulate tab
         Vbox2.pack_start(self.my_socket, True, True,0) #put socket inside vbox

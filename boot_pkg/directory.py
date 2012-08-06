@@ -1,10 +1,17 @@
+#
+# this file is part of the software tool BOOT
+# URL: freerangefactory.org
+# (C) 2012 Fabrizio Tappero
+#
 import glob, os, shutil
 
 # global variables
 before=[]
 
-# check whether any VHDL file in folder "wd" has been modified
 def src_dir_modified(wd):
+    ''' src_dir_modified(wd)
+        Check whether any VHDL file in folder "wd" has been modified.
+    '''
     now = []
     global before
     all_vhdl_files = glob.glob(os.path.join(wd,'*.vhd')) + \
@@ -20,10 +27,13 @@ def src_dir_modified(wd):
         print 'Source code has been modified.'
         return True
 
-# check that all directories and files inside wd are good
-# if the "build" directory exists, delete its content
-# if "build" directory does not exist, create it
 def dir_make_sure(wd):
+    ''' dir_make_sure(wd)
+        Check that all directories and files inside "wd" are good.
+        If the "build" directory exists, delete its content,
+        if "build" directory does not exist, create it.
+        Create  gtkwave conf. file and save in inside folder "build"
+    '''
     # check that all directories and files exist
     if os.path.isdir(wd):
         print "Directory structure seems good."

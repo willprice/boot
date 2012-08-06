@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+#
+# this file is part of the software tool BOOT
+# URL: freerangefactory.org
+# (C) 2012 Fabrizio Tappero
+#
 '''
 FILE: boot.py
 
@@ -12,31 +17,30 @@ Author:   Fabrizio Tappero, fabrizio.tappero<at>gmail.com
 License:  GNU General Public License
 '''
 
-import gtk
-from multiprocessing import Process, Pipe
-
-import gui 
-import boot_process
-from build import build_all
-import quick_start
-
 __author__ = 'Fabrizio Tappero'
 
 # turn on the GUI
 def gui_up():
+    import gtk
     gtk.main()
     return 0
 
 # this is boot main program
 def boot():
 
+    # import all necessary libraries. Importing libraries in this way allows,
+    # for instance, the user to run "boot -b" without having to have all the
+    # there libraries installedself.k
+    from multiprocessing import Process, Pipe
+    import gui 
+    import boot_process
+    
     # create a pipe for communication between compilation & simulation process
     # an the boot GUI
     comm_i, comm_o = Pipe()
 
     # create and start process for compile and simulate
     compute_prc = Process(target=boot_process.comp_and_sim, args=(comm_o,))
-
     compute_prc.start()
 
     # make GUI object and start it.
@@ -53,7 +57,8 @@ def boot():
 # main
 def main():
 
-    import argparse
+    import sys, argparse
+    import quick_start, build
 
     # load parser for help options
     _parser = argparse.ArgumentParser(
@@ -71,18 +76,27 @@ def main():
                         const = True, default = False,
                         help = 'Build a simple VHDL project.')
 
+    _parser.add_argument('-l','--log', required = False, 
+                        dest = 'log', action = 'store_const', 
+                        const = True, default = False,
+                        help = 'Start boot and log output into a local file.')
+
     args = _parser.parse_args()
 
     # load stuff accordingly
     try:
         if args.build:
-            build_all()
+            build.build_all()
         elif args.quick_start:
             # create a 'src' folder with a VHDL counter project in it
             quick_start.make_vhdl_counter_project('src')
+        elif args.log:
+            # redirect standard output to a local file
+            sys.stdout = open('boot.log', 'w')
+            boot()
         else:
-            # redirect standard output
-            #sys.stdout = open('boot.log', 'w')
+            # normal way to run "boot"
+            # redirect standard output to null
             #sys.stdout = open('/dev/null', 'w')
             boot()
     except KeyboardInterrupt:

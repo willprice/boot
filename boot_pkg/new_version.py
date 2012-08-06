@@ -1,16 +1,26 @@
+#
+# this file is part of the software tool BOOT
+# URL: freerangefactory.org
+# (C) 2012 Fabrizio Tappero
+#
 import xmlrpclib, pip
 from pkg_resources import parse_version
 
-# check for new versions of "boot" on the Pypi server.
-# this function just return suggestions
 def check_on_pypi():
-
+    ''' Check for new versions of "boot" on the Pypi server.
+        This function returns only text lines.
+    '''
     import argparse
 
-    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser = argparse.ArgumentParser(
+             description = 'Program to compile, simulate and synthesize '+\
+                           'your VHDL code.',
+             epilog = "Program made by: freerangefactory.org")
 
-    parser.add_argument('-a', '--all', dest='all', action='store_true', 
-                        default=False)
+    parser.add_argument('-l','--log', required = False, 
+                        dest = 'log', action = 'store_const', 
+                        const = True, default = False,
+                        help = 'Start boot and log output into a local file.')
 
     parser.add_argument('-m', '--mirror', dest='mirror', 
                         default='http://pypi.python.org/pypi')

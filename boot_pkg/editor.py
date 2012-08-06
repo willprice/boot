@@ -1,5 +1,11 @@
+#
+# this file is part of the software tool BOOT
+# URL: freerangefactory.org
+# (C) 2012 Fabrizio Tappero
+#
+
 # this is a simple text editor GUI used by boot for displaying and editing 
-# text files within boot.
+# text files within boot itself.
 
 import pygtk, gtk, pango
 pygtk.require('2.0')
@@ -9,7 +15,7 @@ from pygments.styles.tango import TangoStyle
 
 # simple and pretty text editor
 class text_editor:
-    '''this is a simple text editor GUI used by boot for displaying and editing 
+    '''This is a simple text editor GUI used by boot for displaying and editing 
        text files within boot.
     '''
 

@@ -1,10 +1,15 @@
 #!/usr/bin/env python
-# this script will create a pip package or install boot in:
-#   /usr/local/lib/pythonX.Y/dist-packages/boot_pkg
-# plus icon, desktop launcher, and boot executable
 #
-# for help:
+# this script will create a pip package or install "boot" in:
+#   /usr/local/lib/pythonX.Y/dist-packages/boot_pkg
+# plus icon, desktop launcher, and boot executable file
+#
+# see the end of this file for more help.
+#
+# for some help:
 # http://docs.python.org/distutils/setupscript.html
+#
+
 from boot_pkg import version
 
 from distutils.core import setup
@@ -40,6 +45,9 @@ setup(
 #
 # to create a pip distribiution file run:
 #       python setup.py sdist --formats=zip
+#
+# the pip distribiution file can be manually uploaded on the
+# Python cheese factory website pipy.com
 #
 # to install locally run: 
 #       sudo python setup.py install

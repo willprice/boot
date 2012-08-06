@@ -1,3 +1,9 @@
+#
+#
+# this file is part of the software tool BOOT
+# URL: freerangefactory.org
+# (C) 2012 Fabrizio Tappero
+#
 import sys, os
 from subprocess import call
 
@@ -37,18 +43,19 @@ def build_all():
         # create a ~/.nanorc file to enable colors in nano.
         nanorc.make()
 
-        # this is not necessary anymore. Pip is taking care of these dependencies
+        # this is strictly necessary anymore. Pip is taking care of these 
+        # dependencies. We will do it any way for the people who get "boot"
+        # from source or from a source different then pip
         # see the file setup.py for more info.
-        if False:
-            call('sudo apt-get update'.split()) # update apt-get database
+        if True:
+            #call('sudo apt-get update'.split()) # update apt-get database
             call('sudo apt-get install python-pip'.split())
             call('sudo apt-get install gtk2-engines-pixbuf'.split())
-            call('sudo pip install argparse pygments'.split())
+            call('sudo pip install argparse pygments mechanize'.split())
 
         # it is better to install pygtk from apt-get because pip seems to fail
         if True:
             call('sudo apt-get install python-gtk2 python-gobject'.split())
-            call('sudo apt-get install python-jswebkit'.split())
 
 
     elif 'darwin' in sys.platform:                                  # APPLE OS X

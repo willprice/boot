@@ -1,3 +1,8 @@
+#
+# this file is part of the software tool BOOT
+# URL: freerangefactory.org
+# (C) 2012 Fabrizio Tappero
+#
 import os
 
 _content1 = '''
@@ -77,11 +82,26 @@ color brightgreen "['][^']*[^\\][']" "[']{3}.*[^\\][']{3}"
 color brightgreen "["][^"]*[^\\]["]" "["]{3}.*[^\\]["]{3}"
 color blue "--.*$"
 
+# set tab to spaces of size 4 spaces
+set tabstospaces
+set tabsize 4
+
+# enable mouse
+set mouse
+
+# use one addtional line and set the line number indication in the status bar
+set morespace
+set const
+
+# set autoindentation
+set autoindent
+
 '''
 
-# create a nano configuration file named ".nanorc" in ~/
-# IMPORTANT: if you already have this file. NOTHING WILL BE DONE. 
 def make():
+    ''' Create a nano configuration file named ".nanorc" in ~/
+        IMPORTANT: if you already have this file NOTHING WILL BE DONE. 
+    '''
     if os.path.isfile(os.getenv("HOME")+'/.nanorc'):
         print 'WARNING. "~/.nanorc" file already exist. Nothing will be done.'
     else:
