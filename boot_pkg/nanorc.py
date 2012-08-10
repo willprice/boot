@@ -89,9 +89,11 @@ set tabsize 4
 # enable mouse
 set mouse
 
-# use one addtional line and set the line number indication in the status bar
+# use one additional line
 set morespace
-set const
+
+#set the line number indication in the status bar
+#set const
 
 # set autoindentation
 set autoindent

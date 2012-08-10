@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: boot
-Version: 0.23
+Version: 0.28
 Summary: VHDL simulator and synthesis tool
 Home-page: http://www.freerangefactory.org
 Author: free range factory
@@ -23,14 +23,14 @@ Description: ====
         ``pip`` and after install boot. via the terminal command::
         
             sudo apt-get install python-pip
-            pip install boot
+            sudo pip install boot
         
         Update boot
         ------------
         
         boot can be updated with the command::
         
-            pip install --upgrade boot
+            sudo pip install --upgrade boot
         
         How to Use boot 
         ===============

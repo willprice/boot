@@ -17,11 +17,11 @@
 # add a compile and simulate button. For this task I need to rewrite the        DONE
   compile and simulate process.
 
-# write two auto check boxes for Compile and Compile & Simulate tasks           UNDER DEV.
+# write two auto check boxes for Compile and Compile & Simulate tasks           DONE
 
 # add a button or text to open the Synthesis Report file counter_top.syr        DONE
 
-# add a progress bar or some way to see that the synthesis process is ongoing.  DONE but Spinner is a little small
+# add a progress bar or some way to see that the synthesis process is ongoing.  DONE
 
 # rewrite the beautifier function and make a class instead. In this way it can  DONE 
   be used for both synthesis and compile output window. Also use this new 
@@ -33,8 +33,8 @@
 # find a way to pull the book "free range factory" from the Internet, doing so  NOT IMPORTANT
   in a new tab might be a little too intrusive.
 
-# find a way to pull vhdl code from opencores.org in a tab. It would be also    DONE but fix html look on http://opencores.org/project,pcie_sg_dma
-  pretty cool to be able to import opencores code in your src folder.                also, the cookies between mechanize and webkit are not shared (password need twice)
+# find a way to pull vhdl code from opencores.org in a tab. It would be also    DONE
+  pretty cool to be able to import opencores code in your src folder.            
   For this task, it would be good to be able to load opencores website and
   find a way customize the way all pages look. No banners, etc. With webkit 
   this should be possible.
@@ -50,10 +50,12 @@
 # fix compiling process now broken and the accelerators of gtkwave now          DONE
   interfering with nano editor.
 
-# make a better icon for boot
+# make a better icon for boot                                                   DONE
 
+# fix html look on http://opencores.org/project,pcie_sg_dma and also, the 
+  cookies between mechanize and webkit are not shared (password is needed twice)
 
-
+# create a MS Windows version of "boot"
 
 
 

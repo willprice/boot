@@ -6,6 +6,8 @@
 import time, glob, os
 from subprocess import Popen, PIPE, STDOUT
 
+import directory
+
 def comp_and_sim(conn):
     ''' Process to compile and simulate a vhdl design. This process is initiated 
         as soon as boot starts and it keeps running in background in a while 
@@ -34,6 +36,10 @@ def comp_and_sim(conn):
             # clean up GUI
             conn.send('CLEAR ALL\n')
             conn.send('Begin compiling\n')
+
+            # before compile let's clean up the whole build folder
+            # maybe for very big vhdl projects this is not a really good idea
+            directory.dir_make_sure(wd, 'clean_all_files')
 
             # clean all GHDL files
             my_cmd = 'ghdl -clean --workdir=' + wd + '/build'
@@ -78,6 +84,14 @@ def comp_and_sim(conn):
                     # no errors
                     COMPILATION_ERROR = False
 
+            # move the executable tl_entity in folder "/build"
+            if not COMPILATION_ERROR:
+                print 'Moving simulation file:', tl_entity
+                my_cmd = 'mv ' + tl_entity + ' ' + wd + '/build'
+                p = Popen(my_cmd.split(' '), shell=False, stdout=PIPE,stderr=STDOUT)
+                p.wait()
+                print 'All build files moved with process id:', p.pid
+
             # done compiling
             conn.send('End compiling.\n')
 
@@ -87,13 +101,6 @@ def comp_and_sim(conn):
 
             # notify the beginning of a simulation
             conn.send('Begin simulation.\n')
-            
-            # move the executable tl_entity in folder "/build"
-            print 'Moving simulation file:', tl_entity
-            my_cmd = 'mv ' + tl_entity + ' ' + wd + '/build'
-            p = Popen(my_cmd.split(' '), shell=False, stdout=PIPE,stderr=STDOUT)
-            p.wait()
-            print 'All build files moved with process id:', p.pid
             
             # generate simulation file
             tl_entity = tl_file.split('.vhd')[0]# strip file extension

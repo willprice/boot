@@ -3,7 +3,7 @@
 # URL: freerangefactory.org
 # (C) 2012 Fabrizio Tappero
 #
-import glob, os, shutil
+import glob, os, shutil, platform
 
 # global variables
 before=[]
@@ -27,8 +27,8 @@ def src_dir_modified(wd):
         print 'Source code has been modified.'
         return True
 
-def dir_make_sure(wd):
-    ''' dir_make_sure(wd)
+def dir_make_sure(wd, command):
+    ''' dir_make_sure(wd, command)
         Check that all directories and files inside "wd" are good.
         If the "build" directory exists, delete its content,
         if "build" directory does not exist, create it.
@@ -47,13 +47,16 @@ def dir_make_sure(wd):
                        for the folder you are in... Exiting.'
                 return False
         else:
-            # delete all files and folders inside the "build" directory
-            for root, dirs, files in os.walk(os.path.join(wd,'build')):
-                for f in files:
-                    os.unlink(os.path.join(root, f))
-                for d in dirs:
-                    shutil.rmtree(os.path.join(root, d))
-            print 'All files and folders inside "build" were deleted.'
+            if command == 'clean_all_files':
+                # delete all files and folders inside the "build" directory
+                for root, dirs, files in os.walk(os.path.join(wd,'build')):
+                    for f in files:
+                        os.unlink(os.path.join(root, f))
+                    for d in dirs:
+                        shutil.rmtree(os.path.join(root, d))
+                print 'All files and folders inside "build" were deleted.'
+            else:
+                pass
 
         # save gtkwave configuration file inside "build" folder
         print 'Creating gtkwave configuration file inside "build" folder'
@@ -88,5 +91,45 @@ def dir_make_sure(wd):
     else:
         print "The selected top-level design file does not exist or is not a file."
         return False
+
+
+
+def guess_xilinx_ise_path():
+    ''' Try to guess the Xilinx xtclsh synthesis tool path by checking
+        Xilinx ISE environment variables and generate a "source" command with
+    '''
+
+    _txt    = ''
+    answer  = ''
+    command = ''
+
+    # is this machine 32 bit or 64 bit ?
+    if platform.architecture()[0] is '32bit':
+        command = '/settings32.sh'
+    elif platform.architecture()[0] is '64bit':
+        command = '/settings64.sh'
+
+    # let's try to pick it up from the local linux environment
+    if os.environ.get("XILINX"):
+        answer = os.environ.get("XILINX")
+        _txt = 'source ' + answer + command
+        print 'Xilinx ISE software tool detected at:', answer
+
+    if not _txt:
+        # let's see if folder "/opt/Xilinx" exist
+        if os.path.isdir('/opt/Xilinx'):
+            answer = '/opt/Xilinx/12.2/ISE_DS'
+            _txt = 'source ' + answer + command
+
+    if not _txt:
+        # no Xilinx ISE found
+        _txt = 'Xilinx ISE not detected'
+
+    return _txt
+
+
+
+
+
 
 

@@ -46,8 +46,11 @@ setup(
 # to create a pip distribiution file run:
 #       python setup.py sdist --formats=zip
 #
+# to create a registration profile run:
+#       python setup.py register
+#
 # the pip distribiution file can be manually uploaded on the
-# Python cheese factory website pipy.com
+# Python cheese factory website: http://pypi.python.org/pypi
 #
 # to install locally run: 
 #       sudo python setup.py install

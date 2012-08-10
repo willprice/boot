@@ -163,60 +163,6 @@
     </linearGradient>
     <linearGradient
        inkscape:collect="always"
-       xlink:href="#XMLID_95_"
-       id="linearGradient3134"
-       gradientUnits="userSpaceOnUse"
-       x1="24"
-       y1="40"
-       x2="24"
-       y2="20"
-       gradientTransform="translate(4,16)" />
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#XMLID_96_"
-       id="linearGradient3136"
-       gradientUnits="userSpaceOnUse"
-       x1="44"
-       y1="44"
-       x2="44"
-       y2="40"
-       gradientTransform="translate(4,16)" />
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#XMLID_95_"
-       id="linearGradient3140"
-       gradientUnits="userSpaceOnUse"
-       x1="24"
-       y1="40"
-       x2="24"
-       y2="20"
-       gradientTransform="translate(4,16)" />
-    <filter
-       inkscape:collect="always"
-       x="-0.06"
-       width="1.12"
-       y="-0.24"
-       height="1.48"
-       id="filter3723">
-      <feGaussianBlur
-         inkscape:collect="always"
-         stdDeviation="0.4"
-         id="feGaussianBlur3725" />
-    </filter>
-    <filter
-       inkscape:collect="always"
-       x="-0.108"
-       width="1.216"
-       y="-0.0864"
-       height="1.1728"
-       id="filter4489">
-      <feGaussianBlur
-         inkscape:collect="always"
-         stdDeviation="0.72"
-         id="feGaussianBlur4491" />
-    </filter>
-    <linearGradient
-       inkscape:collect="always"
        xlink:href="#radialGradient5295"
        id="linearGradient9764"
        gradientUnits="userSpaceOnUse"
@@ -973,6 +919,14 @@
        x2="64"
        y2="65.874321"
        gradientTransform="matrix(1,0,0,1.0792079,0,-9.1881184)" />
+    <filter
+       inkscape:collect="always"
+       id="filter4015">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="1.016428"
+         id="feGaussianBlur4017" />
+    </filter>
   </defs>
   <sodipodi:namedview
      id="base"
@@ -982,7 +936,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="4"
-     inkscape:cx="59.625"
+     inkscape:cx="55.25"
      inkscape:cy="73.608336"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -1018,7 +972,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -1120,35 +1074,6 @@
        d="M 13,53 C 54.904638,30.634107 95.223936,25.438915 115,24.301649 L 115,17 L 13,17 L 13,53 z "
        id="path43"
        style="opacity:0.05;fill:#ffffff"
-       inkscape:export-filename="/home/fabrizio/Dropbox/free_range_factory/boot/boot_pkg/icns/boot0.png"
-       inkscape:export-xdpi="91.246376"
-       inkscape:export-ydpi="91.246376" />
-    <path
-       d="M 36,48 L 20,56 L 20,51.712 L 30.667,46 L 20,40.288 L 20,36 L 36,44.296 L 36,48 z "
-       id="path50"
-       style="opacity:0.9;fill:url(#linearGradient3134)"
-       inkscape:export-filename="/home/fabrizio/Dropbox/free_range_factory/boot/boot_pkg/icns/boot0.png"
-       inkscape:export-xdpi="91.246376"
-       inkscape:export-ydpi="91.246376" />
-    <path
-       d="M 56,60 L 40,60 L 40,56 L 56,56 L 56,60 z "
-       id="path57"
-       style="opacity:0.9;fill:url(#linearGradient3136)"
-       inkscape:export-filename="/home/fabrizio/Dropbox/free_range_factory/boot/boot_pkg/icns/boot0.png"
-       inkscape:export-xdpi="91.246376"
-       inkscape:export-ydpi="91.246376" />
-    <path
-       d="M 60,60 L 44,60 L 44,56 L 60,56 L 60,60 z "
-       id="path59"
-       style="opacity:0.2;fill:#ffffff;fill-opacity:1;filter:url(#filter3723)"
-       transform="matrix(1.125,0,0,1.5,-10.5,-29)"
-       inkscape:export-filename="/home/fabrizio/Dropbox/free_range_factory/boot/boot_pkg/icns/boot0.png"
-       inkscape:export-xdpi="91.246376"
-       inkscape:export-ydpi="91.246376" />
-    <path
-       d="M 36,48 L 20,56 L 20,51.712 L 30.667,46 L 20,40.288 L 20,36 L 36,44.296 L 36,48 z "
-       id="path61"
-       style="opacity:0.4;fill:url(#linearGradient3140);filter:url(#filter4489)"
        inkscape:export-filename="/home/fabrizio/Dropbox/free_range_factory/boot/boot_pkg/icns/boot0.png"
        inkscape:export-xdpi="91.246376"
        inkscape:export-ydpi="91.246376" />
@@ -1978,19 +1903,35 @@
        inkscape:export-ydpi="91.246376" />
     <text
        xml:space="preserve"
-       style="font-size:37.10113907px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#dddddd;fill-opacity:1;stroke:none;font-family:Sans"
-       x="19.833731"
-       y="90.724358"
-       id="text3543"
+       style="font-size:37.10113907000000211px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#666666;fill-opacity:0.79908675;stroke:none;filter:url(#filter4015);font-family:Sans"
+       x="36.754185"
+       y="88.915039"
+       id="text3543-6-7"
        sodipodi:linespacing="125%"
-       transform="scale(1.0338958,0.96721547)"
+       transform="matrix(1.0338958,0,0,0.96721546,2,2)"
        inkscape:export-filename="/home/fabrizio/Dropbox/free_range_factory/boot/boot_pkg/icns/boot0.png"
        inkscape:export-xdpi="91.246376"
        inkscape:export-ydpi="91.246376"><tspan
          sodipodi:role="line"
-         id="tspan3545"
-         x="19.833731"
-         y="90.724358"
-         style="font-size:27.82585526px;font-weight:bold;fill:#dddddd;fill-opacity:1;-inkscape-font-specification:Sans Bold">VHDL</tspan></text>
+         id="tspan3545-7-0"
+         x="36.754185"
+         y="88.915039"
+         style="font-size:80px;font-weight:bold;fill:#666666;fill-opacity:0.79908675;-inkscape-font-specification:Sans Bold">B</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:37.10113907px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#f9f9f9;fill-opacity:1;stroke:none;font-family:Sans"
+       x="32.885326"
+       y="86.847244"
+       id="text3543-6"
+       sodipodi:linespacing="125%"
+       transform="scale(1.0338958,0.96721546)"
+       inkscape:export-filename="/home/fabrizio/Dropbox/free_range_factory/boot/boot_pkg/icns/boot0.png"
+       inkscape:export-xdpi="91.246376"
+       inkscape:export-ydpi="91.246376"><tspan
+         sodipodi:role="line"
+         id="tspan3545-7"
+         x="32.885326"
+         y="86.847244"
+         style="font-size:80px;font-weight:bold;fill:#f9f9f9;fill-opacity:1;-inkscape-font-specification:Sans Bold">B</tspan></text>
   </g>
 </svg>

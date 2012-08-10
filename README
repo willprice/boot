@@ -15,14 +15,14 @@ Under Linux, boot can be downloaded and installed using ``pip``. First install
 ``pip`` and after install boot. via the terminal command::
 
     sudo apt-get install python-pip
-    pip install boot
+    sudo pip install boot
 
 Update boot
 ------------
 
 boot can be updated with the command::
 
-    pip install --upgrade boot
+    sudo pip install --upgrade boot
 
 How to Use boot 
 ===============

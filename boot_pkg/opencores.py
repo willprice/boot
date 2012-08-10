@@ -15,9 +15,18 @@ class open_cores_website():
         self.br = mechanize.Browser()
         
         # Cookie Jar (Cookies are on by default)
-        cj = cookielib.LWPCookieJar()
-        self.br.set_cookiejar(cj)
-        
+        #cj = cookielib.LWPCookieJar()
+        #self.br.set_cookiejar(cj)
+
+        # set Mozilla-like cookies and if the cookie file exist, load them from HD
+        self.cookies = mechanize.MozillaCookieJar()
+        self.cookies_file = os.path.join(os.environ["HOME"], ".boot_cookies.txt")
+        if os.path.isfile(self.cookies_file):
+            self.cookies.load(self.cookies_file)
+
+        print 'cookies loaded:', len(self.cookies)
+        self.br.set_cookiejar(self.cookies)
+
         # Set browser options
         USER_AGENT = "Mozilla/5.0 (X11; U; Linux i686; tr-TR; rv:1.8.1.9) "+\
                       "Gecko/20071102 Pardus/2007 Firefox/2.0.0.9"
@@ -53,12 +62,14 @@ class open_cores_website():
             return 1
     
         print 'Successfully authenticated in OpenCores website.'
+        self.cookies.save(self.cookies_file) # save cookies locally
         return 0
         
     def login_needed(self):
         ''' Method to check if you need to login or if you are already
             logged in. 
         ''' 
+
         # use your personal OpenCores project page to see if you can open it
         _web = self.br.open("http://opencores.org/acc")
         _answer = self.br.response().read()

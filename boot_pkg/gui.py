@@ -30,6 +30,12 @@ class mk_gui:
     '''gui class for the main GUI of boot.
     '''
 
+    # function to update the synthesis top-level design field every time the
+    # top-level design filed in the compile tab changes.
+    def dir_entry_changed(self, widget):
+        _tmp = self.dir_entry.get_text()
+        self.top_level_label.set_text(_tmp)
+
     # function to deleted or create a new file when top-level design file entry
     # is in focus and CTRL+D or CTRL+N is pressed
     def entry_keypress(self, widget, event):
@@ -112,11 +118,12 @@ class mk_gui:
 
             self.btn_compile.set_label('Stop') # set button to "Stop"
 
-        # stop compile process
+        # stop compile process or stop simulation process (basically stops
+        # all running processes)
         if action=='Stop':
             print 'Stop compiling process (not implemented)'
             # terminate all child processes inside compiling process
-            # TODO THE STOP BUTTON IS NOT IMPLEMENTED YET
+            # TODO THIS FUNCTION IS NOT IMPLEMENTED YET
             self.btn_compile.set_label('Compile')
 
     # function that runs when you press the select file button
@@ -924,11 +931,6 @@ class mk_gui:
             pass
         return True
 
-
-
-
-
-
     # constructor for the whole GUI
     def __init__(self):
 
@@ -980,9 +982,6 @@ class mk_gui:
         vpaned.pack1(terminal_window, shrink=True)
         vpaned.pack2(table, shrink=True)
         self.window.add(vpaned)
-        
-        _txt = 'File manager and text editor. Slide down to open.'
-        tooltips.set_tip(vpaned, _txt)
 
         # Create a notebook and place it inside the table
         notebook = gtk.Notebook()
@@ -1027,7 +1026,7 @@ class mk_gui:
         'CTRL-D:  delete current file.\n')
 
         # let's trigger an action when the text changes
-        #self.dir_entry.connect("changed", self.dir_entry_changed)
+        self.dir_entry.connect("changed", self.dir_entry_changed)
 
         # let's trigger a file action when top-level design file entry
         # is in focus and a certain key combination is pressed
@@ -1132,8 +1131,6 @@ class mk_gui:
                          'Automatically compile and simulate your design '+\
                          'every time a vhdl file in "src/" is modified')
 
-        # WORK IN PROGRESS
-
         # Create a timer for the auto-compile and simulate check box self.chk2
         gobject.timeout_add(600,self.auto_compile_and_simulate_timeout, self)
 
@@ -1165,19 +1162,24 @@ class mk_gui:
         Hbox_syn5 = gtk.HBox(False, 0)
         Vbox_syn1 = gtk.VBox(False, 0)
         Vbox_syn1.set_border_width(10)
+
         self.top_level_label = gtk.Label() # top-level design label
         tooltips.set_tip(self.top_level_label, 'This is your top-level design '+
                         'file. You can edit this in the Compile tab.')
+
         self.tool_path_entry = gtk.Entry() # synthesis tool path
         tooltips.set_tip(self.tool_path_entry, 'This is the path where the '+
                         'synthesis tools are installed.')
+
         self.tool_command_entry = gtk.Entry() # synthesis tool command
         tooltips.set_tip(self.tool_command_entry, 'This is the command to '+
                         'synthesis your design.')
 
         Hbox_syn1.pack_start(self.top_level_label, False, False, 3)
+
         Hbox_syn2.pack_start(gtk.Label('Synthesis tool path setting command: '),
                              False, False,3)
+
 
         #self.tool_path_entry.set_width_chars(90)
         Hbox_syn2.pack_start(self.tool_path_entry, True, True, 3)
@@ -1258,7 +1260,6 @@ class mk_gui:
         # Create and connect syn_button
         self.start_stop_syn_button = gtk.Button('Start Synthesis')
         gen_syn_script_button = gtk.Button('Generate Script')
-        self.syn_spinner = gtk.Spinner()
 
         # this is the synthesize process handler
         self.syn_p = None
@@ -1277,16 +1278,20 @@ class mk_gui:
         syn_report_lb = gtk.Label()
         syn_report_lb_fixed = gtk.Fixed()
         syn_report_lb.modify_font(pango.FontDescription("monospace 9"))
-        _txt = '<a href="xtclsh_script">xtclsh script</a>'+\
+        _txt = '<a href="xtclsh_script">xtclsh script</a> '+\
                '<a href="synthesis_report">synthesis report</a>'
         syn_report_lb.set_markup(_txt)
         syn_report_lb.connect('activate-link', self.open_in_editor)
         syn_report_lb_fixed.put(syn_report_lb,0,15)
 
+        # make a spinner to indicate "work in progress"
+        self.syn_spinner = gtk.Spinner()
+        self.syn_spinner.set_size_request(25,25)
+
         # pack things together
         Hbox_syn4.pack_start(gen_syn_script_button, False, False, 3)
         Hbox_syn4.pack_start(self.start_stop_syn_button, False, False, 3)
-        Hbox_syn4.pack_start(self.syn_spinner, False, False, 0)
+        Hbox_syn4.pack_start(self.syn_spinner, False, False, 3)
         Hbox_syn4.pack_end(syn_report_lb_fixed, False, False, 3)
         Vbox_syn1.pack_start(Hbox_syn4, False, False, 7)
         Vbox_syn1.pack_start(self.syn_scroller, True, True)
@@ -1464,19 +1469,10 @@ class mk_gui:
         self.top_level_label.set_text('Top-level design: ' + \
                                       self.dir_entry.get_text())
 
-        # try to guess the Xilinx xtclsh synthesis tool path by checking
-        # Xilinx ISE environment variables and 
-        # generate a "source" command with "."
-        try:
-            answer = os.environ.get("XILINX_DIR")
-            cmd = 'source ' + answer + '/settings64.sh'
-            self.tool_path_entry.set_text(cmd)
-            print 'Xilinx ISE software too detected at:', answer
-        except:
-            # set the kind of default Xilinx ISE 
-            # path (maybe we could try to search for it)
-            _txt = 'source /opt/Xilinx/13.2/ISE_DS/settings64.sh'
-            self.tool_path_entry.set_text(_txt)
+        #Try to guess the Xilinx xtclsh synthesis tool path by checking
+        #Xilinx ISE environment variables and generate a "source" command with
+        _txt = directory.guess_xilinx_ise_path()
+        self.tool_path_entry.set_text(_txt)
 
         # default xtclsh command
         self.tool_command_entry.set_text('Not set')
@@ -1500,9 +1496,7 @@ class mk_gui:
         self.oc_website = opencores.open_cores_website()
 
         ######## GENERAL PURPOSE ACTIONS ########
-        # first time boot starts up, let's create a suitable environment
-        wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
-        directory.dir_make_sure(wd)
+
 	
 
 

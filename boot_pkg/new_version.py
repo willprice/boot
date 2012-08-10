@@ -42,6 +42,9 @@ def check_on_pypi():
                 comparison = cmp(parse_version(available[0]), 
                                  parse_version(local.version))
 
+                print 'Installed version:', local.version
+                print 'Version available for download:', available[0]
+
                 if comparison == 0:
                     return 'Current version of "boot" is '+ local.version + \
                            ' and it is the newest version.'
@@ -51,8 +54,10 @@ def check_on_pypi():
 
                 # new version available for download
                 else:
-                    return 'Newer version found.\n'+\
-                      'Run the terminal command: sudo pip install --upgrade boot'
+                    return 'A newer version (ver. '+available[0]+\
+                           ') of boot is available for download.\n'+\
+                      'Run the terminal command:'+\
+                      ' "sudo pip install --upgrade boot" and restart boot.'
             else:
                 return 'No package named "boot" is found on pypi servers.'
 
