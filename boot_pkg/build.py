@@ -13,16 +13,27 @@ except:
     pass
 
 def make_desktop_launcher():
-    '''copy the boot launcher file from /usr/share/applications/ to 
-       your ~/Desktop.
+    '''copy the boot launcher file from /usr/share/applications/ into 
+       your ~/Desktop folder.
     '''
     try:
         cmd = 'sudo chmod +x /usr/share/applications/boot.desktop'
         call(cmd.split())
+
         cmd = 'cp /usr/share/applications/boot.desktop ' + \
                os.getenv("HOME") + '/Desktop/'
         call(cmd.split()) 
-        print 'Created desktop launcher file.'      
+        
+        # change owner and group of the desktop icon file 
+        cmd = 'sudo chown '+ os.getlogin() +' '+ os.getenv("HOME") + \
+              '/Desktop/boot.desktop'
+        call(cmd.split())
+
+        cmd = 'sudo chgrp '+ os.getlogin() +' '+ os.getenv("HOME") + \
+              '/Desktop/boot.desktop'
+        call(cmd.split()) 
+
+        print 'Desktop launcher file created.'      
     except:
         print 'Problems in creating a desktop launcher file.'
     return 0

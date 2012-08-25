@@ -81,6 +81,11 @@ def main():
                         const = True, default = False,
                         help = 'Start boot and log output into a local file.')
 
+    _parser.add_argument('-v','--version', required = False, 
+                        dest = 'ver', action = 'store_const', 
+                        const = True, default = False,
+                        help = 'Print the boot version number and exit.')
+
     args = _parser.parse_args()
 
     # load stuff accordingly
@@ -94,11 +99,12 @@ def main():
             # redirect standard output to a local file
             sys.stdout = open('boot.log', 'w')
             boot()
+        elif args.ver:
+            import version
+            print 'boot',version.boot_version
         else:
-            # normal way to run "boot"
-            # redirect standard output to null
-            #sys.stdout = open('/dev/null', 'w')
-            boot()
+            #sys.stdout = open('/dev/null', 'w')     # redirect output to null
+            boot()                                   # normal way to run "boot"
     except KeyboardInterrupt:
         print 'bye bye.'
     return 0

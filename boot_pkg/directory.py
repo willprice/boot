@@ -70,6 +70,7 @@ def dir_make_sure(wd, command):
                            'accel "/Markers/Locking/Lock to Lesser Named Marker" (null)\n'+ \
                            'accel "/Markers/Locking/Lock to Greater Named Marker" (null)\n'+ \
                            'accel "/Markers/Locking/Unlock from Named Marker" (null)\n' + \
+                           'accel "/Markers/Copy Primary->B Marker" (null)\n' + \
                            'accel "/File/Read Save File" (null)\n' + \
                            'accel "/Edit/Cut" (null)\n' + \
                            'accel "/File/Close" (null)\n' + \

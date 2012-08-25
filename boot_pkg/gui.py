@@ -390,13 +390,13 @@ class mk_gui:
         return True # to indicate that we handled the link request
 
     # watchdog to disconnect synthesis process pipes when the synthesis
-    # process end naturally 
+    # process ends 
     def syn_watchdog(self,w):
         if type(self.syn_p) is Popen and self.syn_p.poll() == None:
             # change button label
             self.start_stop_syn_button.set_label('Stop Synthesis')
             self.syn_spinner.start() # make the synthesis wheen spin
-            return True # process exista and still running
+            #return True # process exista and still running
         else:
             gobject.source_remove(self.g_syn_id)
             print 'Synthesis process naturally ended and pipe closed.'
@@ -404,6 +404,19 @@ class mk_gui:
             self.start_stop_syn_button.set_label('Start Synthesis')
             self.syn_spinner.stop() # make the synthesis wheen stop spinning
             return False # this will stop the "gobject.timeout_add"
+
+        # kill synthesis process if it is all done
+        startiter, enditer = self.syn_textbuffer.get_bounds() 
+        _txt = self.syn_textbuffer.get_text(startiter, enditer)
+        if 'End of ISE Tcl script.' in _txt:
+            _txt =''
+            print 'Synthesis process has ended.'
+            self.syn_button_action(self, 'Stop Synthesis')
+        elif 'no such file or directory' in _txt:
+            _txt =''
+            print 'Synthesis process has ended.'
+            self.syn_button_action(self, 'Stop Synthesis')  
+        return True
 
     # Start and stop the Synthesis of your vhdl design
     def syn_button_action(self, widget, action):
@@ -440,9 +453,10 @@ class mk_gui:
             for fl in all_unwanted_fls:
                 os.remove(fl)
 
-            # execute the "source" command (using ".") and also
+            # execute the "source" command 
             command = ['bash','-c',syn_path + '>>/dev/null; env']
-            proc = Popen(command, stdout = PIPE)
+            print 'Running command:', command
+            proc = Popen(command, stdout = PIPE)            
 
             # import and apply the new environment values using "os.environ"
             for line in proc.stdout:
@@ -451,15 +465,26 @@ class mk_gui:
             proc.communicate() # this waits for the process "proc" to terminate
             #pprint.pprint(dict(os.environ))
 
-            # change directory and run synthesis script
-            cmd = syn_cmd
+
             #cmd = 'xtclsh src/build/xil_syn_script.tcl'
             #cmd = "find / -name 't'"
             # TODO: Note that maybe bufsize=10 could be 
             #       problematic (lots of CPU used)
+
+            # change directory and run synthesis script
             try:
-                self.syn_p = Popen(shlex.split(cmd), bufsize=10,
+                #self.syn_p = Popen(shlex.split(cmd), bufsize=10,
+                #                   stdout=PIPE, stderr=STDOUT)
+                self.syn_p = Popen(['/bin/sh'], shell=False, stdin=PIPE, 
                                    stdout=PIPE, stderr=STDOUT)
+                cmd = 'cd '+ wd +'/..\n' # change working directory
+                print 'Running the commmand:', cmd
+                self.syn_p.stdin.write(cmd)
+                cmd = syn_cmd + "\n"
+                print 'Running the commmand:', cmd
+                self.syn_p.stdin.write(cmd)
+                # remember that you need to kill this process when it is done
+
                 print 'New Synthesis process ID:',self.syn_p.pid
             except:
                 print 'Process "xtclsh" cannot start.'
@@ -948,10 +973,6 @@ class mk_gui:
         table = gtk.Table(rows=1, columns=1, homogeneous=False)
         #self.window.add(table)
 
-        # make tool-tip object
-        tooltips = gtk.Tooltips()
-
-
        ######## TERMINAL TAB ##########
         # make terminal
         terminal = vte.Terminal()
@@ -1004,8 +1025,8 @@ class mk_gui:
         comp_out.set_editable(False)
         self.comp_textbuffer = comp_out.get_buffer()
         self.comp_scroller.add(comp_out)
-        _txt ='For the synthesis of your design select your VHDL top-level'+\
-               'design file.\nIf you are interested in running a simulation'+\
+        _txt ='For the synthesis of your design select your VHDL top-level '+\
+               'design file.\nIf you are interested in running a simulation '+\
                'of your design, select instead your test-bench file.\n\n'+\
                'For any addtional help please consult the Help Tab.'
         self.comp_textbuffer.set_text(_txt) 
@@ -1019,7 +1040,7 @@ class mk_gui:
 
         # make directory entry
         self.dir_entry = gtk.Entry()
-        tooltips.set_tip(self.dir_entry, 
+        self.dir_entry.set_tooltip_text(
         'Here you select the top-level design file or the test-bench file.\n'+
         'The following shortcuts are also available:\n' +
         'CTRL-N:  create a new file.\n' +
@@ -1038,13 +1059,14 @@ class mk_gui:
         btn_ind = gtk.Button()
         btn_ind.add(self.img_ind)
         btn_ind.connect("clicked", self.select_file)
-        tooltips.set_tip(btn_ind, 
+        btn_ind.set_tooltip_text(
                          "Select top-level design file or test-bench file.")
 
         # compile button
         self.btn_compile = gtk.Button('Compile')
         self.btn_compile.connect("clicked",self.compileSimulateAction,'Compile')
-        tooltips.set_tip(self.btn_compile,'Check and compile your design.')
+
+        self.btn_compile.set_tooltip_text('Check and compile your design.')
      
         # put stuff together in the window
         Hbox1 = gtk.HBox(False, 0)
@@ -1076,7 +1098,7 @@ class mk_gui:
         self.chk1 = gtk.CheckButton("auto")
         self.chk1.set_active(False)
 
-        tooltips.set_tip(self.chk1,'Automatically compile your design '+\
+        self.chk1.set_tooltip_text('Automatically compile your design '+\
                                  'every time a vhdl file in "src/" is modified')
 
 
@@ -1108,13 +1130,13 @@ class mk_gui:
         self.btn_compileAndSimulate.connect("clicked", 
                                             self.compileSimulateAction, 
                                             'Compile & Simulate')
-        tooltips.set_tip(self.btn_compileAndSimulate,
+        self.btn_compileAndSimulate.set_tooltip_text(
                          'Check, compile and simulate your VHDL design.')
 
         # load some fields into Simulate tab
         Hbox3 = gtk.HBox(False, 0)
         self.sim_opt_entry = gtk.Entry()# make simulation option field entry
-        tooltips.set_tip(self.sim_opt_entry, 'Enter simulation options.')
+        self.sim_opt_entry.set_tooltip_text('Enter simulation options.')
         self.sim_opt_entry.set_text('--stop-time=200ns')
         sim_opt_label = gtk.Label("Simulation options: ") # text label
         Hbox3.pack_start(sim_opt_label, False, False, 2)
@@ -1127,7 +1149,7 @@ class mk_gui:
         self.chk2 = gtk.CheckButton("auto")
         self.chk2.set_active(False)
         self.chk2.set_sensitive(True)
-        tooltips.set_tip(self.chk2, 
+        self.chk2.set_tooltip_text( 
                          'Automatically compile and simulate your design '+\
                          'every time a vhdl file in "src/" is modified')
 
@@ -1164,15 +1186,15 @@ class mk_gui:
         Vbox_syn1.set_border_width(10)
 
         self.top_level_label = gtk.Label() # top-level design label
-        tooltips.set_tip(self.top_level_label, 'This is your top-level design '+
+        self.top_level_label.set_tooltip_text('This is your top-level design '+
                         'file. You can edit this in the Compile tab.')
 
         self.tool_path_entry = gtk.Entry() # synthesis tool path
-        tooltips.set_tip(self.tool_path_entry, 'This is the path where the '+
+        self.tool_path_entry.set_tooltip_text('This is the path where the '+
                         'synthesis tools are installed.')
 
         self.tool_command_entry = gtk.Entry() # synthesis tool command
-        tooltips.set_tip(self.tool_command_entry, 'This is the command to '+
+        self.tool_command_entry.set_tooltip_text('This is the command to '+
                         'synthesis your design.')
 
         Hbox_syn1.pack_start(self.top_level_label, False, False, 3)
@@ -1412,8 +1434,8 @@ class mk_gui:
         notebook.append_page(pr_Vbox1, gtk.Label('Preferences'))
         check_updates_button.connect("clicked", self.check_for_new_ver)
         set_default_button.connect("clicked", self.set_default_boot)
-        tooltips.set_tip(check_updates_button, "Download a new version of boot")
-        tooltips.set_tip(set_default_button, "Set boot to its default status")
+        check_updates_button.set_tooltip_text("Download a new version of boot")
+        set_default_button.set_tooltip_text("Set boot to its default status")
 
         ######## LIST OF ACTIONS TO PERFORM WHEN THE GUI STARTS UP ##########
 

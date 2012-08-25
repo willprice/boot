@@ -13,6 +13,7 @@
 from boot_pkg import version
 
 from distutils.core import setup
+#import py2exe
 import sys
 
 
