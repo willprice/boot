@@ -1,3 +1,3 @@
 
-boot_version = '0.31'
+boot_version = '0.32'
 
