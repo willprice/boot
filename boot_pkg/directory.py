@@ -93,8 +93,6 @@ def dir_make_sure(wd, command):
         print "The selected top-level design file does not exist or is not a file."
         return False
 
-
-
 def guess_xilinx_ise_path():
     ''' Try to guess the Xilinx xtclsh synthesis tool path by checking
         Xilinx ISE environment variables and generate a "source" command with

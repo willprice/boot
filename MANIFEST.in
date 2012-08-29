@@ -11,6 +11,8 @@ include CONTRIBUTE
 global-exclude test/*
 #global-exclude build/*
 #global-exclude dist/*
-global-exclude *~
+global-exclude *~ 
+
+global-exclude boot_pkg/clean
 
 

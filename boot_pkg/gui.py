@@ -304,6 +304,9 @@ class mk_gui:
     # Generate and save synthesis script
     def gen_syn_script_button_action(self, widget, action):
 
+        # create some local variables
+        tl, files, constraints_file = None, None, None
+
         # get information from Synthesis tab
         tl   = os.path.basename(self.dir_entry.get_text())
         tl = tl.split('.')[0] # strip ".vhdl" extension
@@ -341,31 +344,35 @@ class mk_gui:
         pa = self.pa.get_model()[self.pa.get_active()][0]
         sp = self.sp.get_model()[self.sp.get_active()][0]
 
-        # Creating synthesis folder
+        # If it doesn't already exist, creating synthesis folder
         if os.path.isdir(syn_out_dir):
-            pass
+            pass # directory already exist
         else:
-            os.path.os.mkdir(syn_out_dir)
+            try:
+                os.path.os.mkdir(syn_out_dir)
+            except:
+                print "You don't have the permission for creating:", syn_out_dir
 
         # Generating and saving synthesis script
-        try:
-            if tcl.make_xilinx(syn_out_dir, tl, files, constraints_file, 
-                                  fa, de, pa, sp):
-                print 'Synthesis script generation process failed.'
-                return 1
-            print 'Xilinx synthesis script generated.'
+        if tcl.make_xilinx(syn_out_dir, tl, files, constraints_file, 
+                           fa, de, pa, sp):
 
             _start = self.syn_textbuffer.get_end_iter()
-            _txt = 'Xilinx synthesis script generated.\n'
+            _txt = 'Problems in saving the Xilinx synthesis script.\n' +\
+                   'Maybe you have writing permission problems.\n'
             self.syn_textbuffer.insert_with_tags(_start,_txt)
-
-            # update the synthesis command field
-            _txt = 'xtclsh src/build/xil_syn_script.tcl'
-            self.tool_command_entry.set_text(_txt)
-        except:
-            print 'Problems in saving the Xilinx synthesis script.'
-            print 'Maybe you have rights permission problems.'
             return 1
+
+        print 'Xilinx synthesis script successfully generated.'
+
+        _start = self.syn_textbuffer.get_end_iter()
+        _txt = 'Xilinx synthesis script successfully generated '+\
+               '(you can inspect it with the link on the right).\n'
+        self.syn_textbuffer.insert_with_tags(_start,_txt)
+
+        # update the synthesis command field
+        _txt = 'xtclsh src/build/xil_syn_script.tcl'
+        self.tool_command_entry.set_text(_txt)
         return 0
 
     # open the default editor and show a file
@@ -713,7 +720,7 @@ class mk_gui:
                                             });
     
                $("body .content").css({"width":"100%","padding-bottom":"50pt"});
-               $("body .content").children().last().css({"height":"30pt"});
+               $("body .content").children().last().css({"height":"220pt"});
                $("body").css({"backgroundColor":"#FFF"});
         
                // turn off some css3 attributes 
@@ -954,6 +961,30 @@ class mk_gui:
 
         else: # auto-compile and simulate is off
             pass
+        return True
+
+    # This is a timeout function that runs every 1000 ms and enables/disables
+    # various GUI buttons in accordance to weather a proper top-level design 
+    # file is selected
+    def enable_gui_buttons(self, widget):
+        _file = self.dir_entry.get_text()
+        if os.path.isfile(_file):
+            if _file.endswith('.vhd') or _file.endswith('.vhdl'):
+                # top-level design file properly selected and it exists
+                self.btn_compile.set_sensitive(True)
+                self.chk1.set_sensitive(True)
+                self.btn_compileAndSimulate.set_sensitive(True)
+                self.chk2.set_sensitive(True)
+                self.start_stop_syn_button.set_sensitive(True)
+                self.gen_syn_script_button.set_sensitive(True)
+                return True
+        # top-level design file not properly selected or doesn't exist
+        self.btn_compile.set_sensitive(False)
+        self.chk1.set_sensitive(False)
+        self.btn_compileAndSimulate.set_sensitive(False)
+        self.chk2.set_sensitive(False)
+        self.start_stop_syn_button.set_sensitive(False)
+        self.gen_syn_script_button.set_sensitive(False)
         return True
 
     # constructor for the whole GUI
@@ -1281,7 +1312,7 @@ class mk_gui:
 
         # Create and connect syn_button
         self.start_stop_syn_button = gtk.Button('Start Synthesis')
-        gen_syn_script_button = gtk.Button('Generate Script')
+        self.gen_syn_script_button = gtk.Button('Generate Script')
 
         # this is the synthesize process handler
         self.syn_p = None
@@ -1292,7 +1323,7 @@ class mk_gui:
         self.start_stop_syn_button.connect("clicked", 
                                            self.syn_button_action, 
                                            self.start_stop_syn_button.get_label())
-        gen_syn_script_button.connect("clicked", 
+        self.gen_syn_script_button.connect("clicked", 
                                       self.gen_syn_script_button_action,
                                       'gen_script')
 
@@ -1311,7 +1342,7 @@ class mk_gui:
         self.syn_spinner.set_size_request(25,25)
 
         # pack things together
-        Hbox_syn4.pack_start(gen_syn_script_button, False, False, 3)
+        Hbox_syn4.pack_start(self.gen_syn_script_button, False, False, 3)
         Hbox_syn4.pack_start(self.start_stop_syn_button, False, False, 3)
         Hbox_syn4.pack_start(self.syn_spinner, False, False, 3)
         Hbox_syn4.pack_end(syn_report_lb_fixed, False, False, 3)
@@ -1371,12 +1402,7 @@ class mk_gui:
         self.oc_scroller.add(self.oc_browser)
 
         notebook.append_page(oc_vbox, gtk.Label('OpenCores')) # load
-        
-        # Load initial page
-        oc_default_www = 'http://opencores.org/projects'
-        self.oc_www_adr_bar.set_text(oc_default_www)
 
-        self.oc_browser.open(oc_default_www)
         self.oc_back_button.set_sensitive(False)
         self.oc_forward_button.set_sensitive(False)
     
@@ -1510,7 +1536,13 @@ class mk_gui:
         self.comp_bar.set_visible(False)
 
         ######## POPULATE OPENCORES TAB ########
-        # create a list where to store your OpenCores website login and password
+
+        # Load opencores initial page
+        oc_default_www = 'http://opencores.org/projects'
+        self.oc_www_adr_bar.set_text(oc_default_www)
+        self.oc_browser.open(oc_default_www)
+
+        # create a var where to store your OpenCores website login and password
         self.oc_login_data = ['','']
 
         # create a website object to use to authenticate and download stuff 
@@ -1518,6 +1550,11 @@ class mk_gui:
         self.oc_website = opencores.open_cores_website()
 
         ######## GENERAL PURPOSE ACTIONS ########
+        
+        # start a background process that enables/disables various GUI buttons in 
+        # accordance to weather a proper vhdl top-design file is selected.
+        gobject.timeout_add(1000, self.enable_gui_buttons, self)
+
 
 	
 

@@ -44,11 +44,13 @@ setup(
                     'Natural Language :: English']
     )
 #
-# to create a pip distribiution file run:
+# to create a registration profile (used to publish a new boot version 
+# on the pip website) run:
+#       python setup.py register
+#
+# to create a boot distribiution zip folder run:
 #       python setup.py sdist --formats=zip
 #
-# to create a registration profile run:
-#       python setup.py register
 #
 # the pip distribiution file can be manually uploaded on the
 # Python cheese factory website: http://pypi.python.org/pypi

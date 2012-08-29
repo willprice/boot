@@ -186,11 +186,12 @@ close $f_id
     # NOTE: above we have used "build" directory and not syn_out_dir
 
     try:
-        print 'Generating Xilinx ISE xtclsh script'
         if os.path.isdir(syn_out_dir):
-            open(os.path.join(syn_out_dir,'xil_syn_script.tcl'),'w').write(content)
+            _fl = os.path.join(syn_out_dir,'xil_syn_script.tcl')
+            open(_fl,'w').write(content)
+            print 'Successfully generated Xilinx script file:', _fl
         else:
-            print 'Problems in writing, you might have permission problems.'
+            print 'Xilinx script not generated.'
             return 1
     except:
         print 'Problems in writing, you might have permission problems.'

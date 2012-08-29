@@ -106,6 +106,7 @@ def get_login_data():
 if __name__ == '__main__':
 
     ###### procedure to test the "open_cores_website" class. ########
+    ###### this is just used for testing purposes            ########
 
     dl_dir = '/tmp'
     login_data = ['','']
