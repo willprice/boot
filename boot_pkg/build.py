@@ -62,6 +62,7 @@ def build_all():
             #call('sudo apt-get update'.split()) # update apt-get database
             call('sudo apt-get install python-pip'.split())
             call('sudo apt-get install gtk2-engines-pixbuf'.split())
+            call('sudo apt-get install install python-webkit'.split())
             call('sudo pip install argparse pygments mechanize'.split())
 
         # it is better to install pygtk from apt-get because pip seems to fail
