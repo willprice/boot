@@ -96,7 +96,8 @@ class mk_gui:
     def compileSimulateAction(self, widget, action):
 
         # working directory
-        wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+        #wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+        wd = os.path.dirname(self.dir_entry.get_text())
         # top-level design file
         tld_file = os.path.basename(self.dir_entry.get_text())
         # simulation options
@@ -134,7 +135,9 @@ class mk_gui:
                  (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
                  gtk.STOCK_OPEN, gtk.RESPONSE_OK))
         dialog.set_default_response(gtk.RESPONSE_OK)
-        _dir=os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+        #_dir=os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+        _dir=os.path.dirname(self.dir_entry.get_text())
+        print 'AAAA', _dir
         dialog.set_current_folder(_dir)
         print _dir
         filter = gtk.FileFilter()
@@ -226,7 +229,8 @@ class mk_gui:
         sp = self.sp.get_model()[self.sp.get_active()][0]
 
         # working directory
-        wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+        #wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+        wd = os.path.dirname(self.dir_entry.get_text())
         # top-level design file
         tld_file = os.path.basename(self.dir_entry.get_text())
         # simulation options
@@ -312,7 +316,8 @@ class mk_gui:
         tl = tl.split('.')[0] # strip ".vhdl" extension
 
         # working directory
-        wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+        #wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+        wd = os.path.dirname(self.dir_entry.get_text())
 
         # this is where all synthesis files will go
         syn_out_dir = os.path.join(wd, 'build')
@@ -377,15 +382,16 @@ class mk_gui:
 
     # open the default editor and show a file
     def open_in_editor(self, label, uri):
-        wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+        #wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+        wd = os.path.dirname(self.dir_entry.get_text())
         tld_file = os.path.basename(self.dir_entry.get_text())
         _fl=''
 
         if 'synthesis_report' in uri:
             tld = tld_file.split('.')[0]
-            _fl = os.path.join(wd,'build',tld+'.syr')
+            _fl = os.path.join(wd,'build', tld + '.syr')
         if 'xtclsh_script' in uri:
-             _fl = os.path.join(wd,'build','xil_syn_script.tcl')
+             _fl = os.path.join(wd, 'build', 'xil_syn_script.tcl')
 
         if os.path.isfile(_fl):
                 try:
@@ -402,14 +408,16 @@ class mk_gui:
         if type(self.syn_p) is Popen and self.syn_p.poll() == None:
             # change button label
             self.start_stop_syn_button.set_label('Stop Synthesis')
-            self.syn_spinner.start() # make the synthesis wheen spin
+            if self.syn_spinner is not None:
+                self.syn_spinner.start() # make the synthesis wheen spin
             #return True # process exista and still running
         else:
             gobject.source_remove(self.g_syn_id)
             print 'Synthesis process naturally ended and pipe closed.'
             # change button label
             self.start_stop_syn_button.set_label('Start Synthesis')
-            self.syn_spinner.stop() # make the synthesis wheen stop spinning
+            if self.syn_spinner is not None:
+                self.syn_spinner.stop() # make the synthesis wheen stop spinning
             return False # this will stop the "gobject.timeout_add"
 
         # kill synthesis process if it is all done
@@ -435,7 +443,8 @@ class mk_gui:
         tl = self.dir_entry.get_text()
         syn_path = self.tool_path_entry.get_text()
         syn_cmd = self.tool_command_entry.get_text()
-        wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+        #wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+        wd = os.path.dirname(self.dir_entry.get_text())
 
         # work in progress warning window
         #self.on_warn('Sorry mate, this feature is not implemented yet.')
@@ -659,9 +668,51 @@ class mk_gui:
         self.update_boot_msg.set_text('')
         _answer = new_version.check_on_pypi()
         print _answer
-        self.update_boot_msg.set_text(_answer)
+        self.update_boot_msg.set_markup(
+        '<span size="11000" foreground="#B5B2AC">   '+_answer+'</span>')
         return 0
 
+    # update "boot" in background
+    def update_boot_backbround(self, widget):
+        print 'The process to update "boot" is running in background.'
+        import pexpect, sys
+        #child = pexpect.spawn('sudo pip install --upgrade boot', logfile=sys.stdout)
+        child = pexpect.spawn('sudo pip install --upgrade boot')
+        child.expect(".ssword:*")
+        child.sendline (self.sudo_pw_entry.get_text()) # read password from field 
+
+        # redirect output and make some checks
+        i=child.expect(['Cleaning up...','Cannot fetch index base URL*','Sorry, try again.'])
+        if i==0:
+            print "boot successfully updated."
+            self.update_boot_msg.set_markup(
+            '<span size="11000" foreground="#B5B2AC">   boot successfully updated, you now need to restart boot.</span>')
+            child.expect(pexpect.EOF) # wait until the end
+        elif i==1:
+            print "Problems in connecting to the Internet."
+            self.update_boot_msg.set_markup(
+            '<span size="11000" foreground="#B5B2AC">   Problems in connecting to the Internet.</span>')
+            child.expect(pexpect.EOF) # wait until the end
+        elif i==2:
+            print "Wrong password, try again."
+            self.update_boot_msg.set_markup(
+            '<span size="11000" foreground="#B5B2AC">   Wrong password, try again.</span>')
+        else:
+            print "Problems..."
+            self.update_boot_msg.set_markup(
+            '<span size="11000" foreground="#B5B2AC">   Problems...</span>')
+
+        child.close()
+        return False
+
+    # update "boot"
+    def update_boot_fn(self, widget):   
+        # run the update process in background   
+        self.update_boot_msg.set_markup(
+        '<span size="11000" foreground="#B5B2AC">   Work in progress...</span>')
+
+        gobject.timeout_add(1000, self.update_boot_backbround, self)
+        # mind that this timeout pbject will run only once
 
     # set of methods for the OpenCores tab
     def oc_go_back(self, widget, data=None):
@@ -744,18 +795,18 @@ class mk_gui:
     def oc_load_finished(self, webview, frame):
         self.oc_scroller.show() # show web page once loaded
         self.oc_progress.set_visible(False)
+
     
     def oc_download(self, webview, download):
-    
         import threading
-    
         saveas = gtk.FileChooserDialog(title=None,
                  action=gtk.FILE_CHOOSER_ACTION_SAVE,
                  buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
                           gtk.STOCK_SAVE, gtk.RESPONSE_OK))
     
         # propose the current working directory
-        _dir=os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+        #_dir=os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+        _dir = os.path.dirname(self.dir_entry.get_text())
         saveas.set_current_folder(_dir)
 
         # get url under the mouse and propose it as file name
@@ -766,9 +817,14 @@ class mk_gui:
         
             # this is an OpenCores download link (a link to a tar.gz file)
             dl_fl = downloadfrom.split('http://opencores.org/download,')[-1] + '.tar.gz'
+
+        # download cores hosted in freerangefactory normally
+        elif 'http://www.freerangefactory.org/' in downloadfrom:
+            if '.tar.gz' in downloadfrom:
+                dl_fl = downloadfrom.split('/')[-1]
+                self.oc_login_data = ['xxxx','xxxx'] # no password is needed
         else:
-        
-            # normal link
+            # normal html link
             if downloadfrom.endswith('.html') or downloadfrom.endswith('.htm'):
                 dl_fl = downloadfrom.split('/')[-1]
             else:
@@ -802,7 +858,7 @@ class mk_gui:
             # object "self.oc_website" for the OpenCores website access.
 
             # login if necessary
-            if 'yes' in self.oc_website.login_needed():
+            if 'yes' in self.oc_website.login_needed(downloadfrom):
                 _answer = self.oc_website.login(self.oc_login_data)
                 if _answer == 1:
                     print 'Loging failed.'
@@ -816,8 +872,47 @@ class mk_gui:
             mythread = threading.Thread(target = self.oc_website.download,
                                        args = (downloadfrom, dl_dir, dl_fl))
             mythread.start()
-            self.on_warn('File succesfully downloaded')
+            self.on_warn('File succesfully downloaded.')
     
+
+    # this signal is used to download when you click on a downloadable link
+    # the default folder will be used.
+    def link_clicked(self, web_view, frame, request, navigation_action, policy_decision):
+        _url = request.get_uri()
+        if _url.endswith('.html') or _url.endswith('.htm'):
+            # exiting
+            return 0
+        if 'No%20archive%20link%20available' in _url:
+            # exiting
+            return 0
+        if 'No_archive_link_available' in _url:
+            # exiting
+            return 0
+
+        if not _url.endswith('.tar.gz'):
+            # exiting
+            return 0
+
+        dl_fl = _url.split('/')[-1]
+        #_dir=os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+        _dir = os.path.dirname(self.dir_entry.get_text())
+        _answer = self.on_warn('About to download the following file: \n'+ dl_fl)
+        if _answer == gtk.RESPONSE_OK: 
+            print "Downloading and unzipping the file:", _url
+            self.oc_website.download(_url, _dir, dl_fl) 
+            # TODO it would be good to run this in a different thread (see previous function)
+            self.on_warn('File succesfully downloaded, unzipping it now.')
+
+            # unzip the tar file
+            try:
+                import tarfile
+                dl_fl = os.path.join(_dir, dl_fl)
+                tar = tarfile.open(dl_fl, 'r:gz')
+                for item in tar:
+                    tar.extract(item, path=_dir)
+                print 'Unzipping done.'
+            except:
+                pass
 
     # this is the login box for requesting OpenCores login and password
     def oc_loginBox(self):
@@ -932,7 +1027,8 @@ class mk_gui:
     # file is saved.
     def auto_compile_timeout(self,widget):
         if self.chk1.get_active(): # auto-compile is one
-            wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+            #wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+            wd = os.path.dirname(self.dir_entry.get_text())
             # check if vhdl files where changed
             if directory.src_dir_modified(wd):
                 print 'Auto-compiling...'
@@ -950,7 +1046,8 @@ class mk_gui:
     # time any VHDL file is saved.
     def auto_compile_and_simulate_timeout(self,widget):
         if self.chk2.get_active():
-            wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+            #wd = os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+            wd = os.path.dirname(self.dir_entry.get_text())
             # check if vhdl files where changed
             if directory.src_dir_modified(wd):
                 print 'Auto-compiling and simulating...'
@@ -995,9 +1092,9 @@ class mk_gui:
         #self.window.connect("delete_event", self.delete)
         self.window.connect("destroy", self.destroy_progress)
         self.window.set_border_width(2)
-        #self.window.set_size_request(920, 500)
-        self.window.set_size_request(920, 600)
-        _txt = 'freerangefactory.org - boot ver. ' + version.boot_version
+        self.window.set_size_request(940, 600)
+        import version
+        _txt = 'freerangefactory.org - boot ' + version.boot_version
         self.window.set_title(_txt)
 
         # make a 1X1 table to put the tabs in (this table is not really needed)
@@ -1059,8 +1156,8 @@ class mk_gui:
         _txt ='For the synthesis of your design select your VHDL top-level '+\
                'design file.\nIf you are interested in running a simulation '+\
                'of your design, select instead your test-bench file.\n\n'+\
-               'For any addtional help please consult the Help Tab.'
-        self.comp_textbuffer.set_text(_txt) 
+               'For any additional help please consult the Help Tab.'
+        self.comp_textbuffer.set_text(_txt)
 
         # style the synthesis output text area
         comp_out.modify_font(pango.FontDescription('monospace 9'))
@@ -1131,7 +1228,6 @@ class mk_gui:
 
         self.chk1.set_tooltip_text('Automatically compile your design '+\
                                  'every time a vhdl file in "src/" is modified')
-
 
         # Create a timer for the auto-compile check box
         gobject.timeout_add(600,self.auto_compile_timeout, self)
@@ -1232,7 +1328,6 @@ class mk_gui:
 
         Hbox_syn2.pack_start(gtk.Label('Synthesis tool path setting command: '),
                              False, False,3)
-
 
         #self.tool_path_entry.set_width_chars(90)
         Hbox_syn2.pack_start(self.tool_path_entry, True, True, 3)
@@ -1338,13 +1433,19 @@ class mk_gui:
         syn_report_lb_fixed.put(syn_report_lb,0,15)
 
         # make a spinner to indicate "work in progress"
-        self.syn_spinner = gtk.Spinner()
-        self.syn_spinner.set_size_request(25,25)
+        # in some GTK distribiutions the spinner doesn't exist
+        try:
+            self.syn_spinner = gtk.Spinner()
+            self.syn_spinner.set_size_request(25,25)
+        except Exception:
+            self.syn_spinner = None
+
 
         # pack things together
         Hbox_syn4.pack_start(self.gen_syn_script_button, False, False, 3)
         Hbox_syn4.pack_start(self.start_stop_syn_button, False, False, 3)
-        Hbox_syn4.pack_start(self.syn_spinner, False, False, 3)
+        if self.syn_spinner is not None:
+            Hbox_syn4.pack_start(self.syn_spinner, False, False, 3)
         Hbox_syn4.pack_end(syn_report_lb_fixed, False, False, 3)
         Vbox_syn1.pack_start(Hbox_syn4, False, False, 7)
         Vbox_syn1.pack_start(self.syn_scroller, True, True)
@@ -1352,7 +1453,7 @@ class mk_gui:
         # load the whole Synthesize tab content
         notebook.append_page(Vbox_syn1, gtk.Label('Synthesize'))
 
-        ######## OPENCORES TAB ##########
+        ######## IP CORES TAB ##########
         self.oc_scroller = gtk.ScrolledWindow()
         self.oc_browser = webkit.WebView()
     
@@ -1364,16 +1465,19 @@ class mk_gui:
         self.oc_browser.connect("load-finished", self.oc_load_finished)
         self.oc_browser.connect("load_committed", self.oc_update_buttons)
         self.oc_browser.connect("download_requested", self.oc_download)
+        self.oc_browser.connect("navigation-policy-decision-requested", self.link_clicked)
+
+
         
         oc_prj_button = gtk.Button('OpenCores')
         oc_login_button = gtk.Button('Login')
         oc_account_button = gtk.Button('My Account')
-        oc_faq_button = gtk.Button('FAQ')
+        oc_home_button = gtk.Button('Home')
     
         oc_prj_button.connect("clicked", self.oc_load_www,'http://opencores.org/projects')
         oc_login_button.connect("clicked", self.oc_load_www,'http://opencores.org/login')
         oc_account_button.connect("clicked", self.oc_load_www,'http://opencores.org/acc')
-        oc_faq_button.connect("clicked", self.oc_load_www,'http://opencores.org/faq')
+        oc_home_button.connect("clicked", self.oc_load_www,'http://www.freerangefactory.org/cores/index.html')
     
         self.oc_www_adr_bar = gtk.Entry()
         self.oc_www_adr_bar.connect("activate", self.oc_load_www_bar)
@@ -1389,19 +1493,19 @@ class mk_gui:
         oc_hbox.pack_start(self.oc_back_button,False, False,2)
         oc_hbox.pack_start(self.oc_forward_button,False, False)
     
+        oc_hbox.pack_start(oc_home_button,False, False,2)
+        oc_hbox.pack_start(self.oc_www_adr_bar,True, True,2)
+    
         oc_hbox.pack_start(oc_prj_button,False, False,2)
         oc_hbox.pack_start(oc_login_button,False, False,2)
         oc_hbox.pack_start(oc_account_button,False, False,2)
-        oc_hbox.pack_start(oc_faq_button,False, False,2)
-    
-        oc_hbox.pack_start(self.oc_www_adr_bar,True, True,2)
-    
+
         oc_vbox.pack_start(oc_hbox,False, False,4)
         oc_vbox.pack_start(self.oc_scroller,True, True,4)
         oc_vbox.pack_end(self.oc_progress,False, False,4)
         self.oc_scroller.add(self.oc_browser)
 
-        notebook.append_page(oc_vbox, gtk.Label('OpenCores')) # load
+        notebook.append_page(oc_vbox, gtk.Label('IP Cores')) # load
 
         self.oc_back_button.set_sensitive(False)
         self.oc_forward_button.set_sensitive(False)
@@ -1442,25 +1546,56 @@ class mk_gui:
 
         ######## PREFERENCE TAB ##########
         # make Preferences tab
-        check_updates_button = gtk.Button('Check for Updates')
+        title1 = gtk.Label('<b> Update Boot</b>')
+        title1.set_use_markup(gtk.TRUE)
+        title1.set_alignment(0, 0) # align to the left
+
+        title2 = gtk.Label('<b> Default Setup</b>')
+        title2.set_use_markup(gtk.TRUE)
+        title2.set_alignment(0, 0) # align to the left 
+
+        update_boot_button = gtk.Button('Update boot')
         set_default_button = gtk.Button('Set Default')
         _txt = 'Reset boot to its default configuration.'
         self.set_default_button_label = gtk.Label(_txt)
+
+        # admin password field
+        self.sudo_pw_entry = gtk.Entry()
+        self.sudo_pw_entry.set_visibility(False)
+
+        pw_lb = gtk.Label()
+        pw_fixed = gtk.Fixed()
+        pw_lb.set_use_markup(gtk.TRUE)
+        pw_lb.set_markup("<span size='8000' \
+                        foreground='#B5B2AC'>Administrator's password</span>")
+        pw_fixed.put(pw_lb,115,0)
+
         pr_Hbox1 = gtk.HBox(False, 0)
         pr_Hbox2 = gtk.HBox(False, 0)
-        pr_Hbox1.pack_start(check_updates_button, False, False, 7)
-        pr_Hbox2.pack_start(set_default_button, False, False, 7)
+
+        pr_Hbox1.pack_start(update_boot_button, False, False, 5)
+        pr_Hbox1.pack_start(self.sudo_pw_entry, False, False, 5)
+
+        pr_Hbox2.pack_start(set_default_button, False, False, 5)
         pr_Hbox2.pack_start(self.set_default_button_label, False, False, 2)
+
         self.update_boot_msg = gtk.Label('')
-        pr_Hbox1.pack_start(self.update_boot_msg, False, False, 7)
+        self.update_boot_msg.set_use_markup(gtk.TRUE)
+        self.update_boot_msg.set_alignment(0, 0) # align to the left 
 
         pr_Vbox1 = gtk.VBox(False, 0)
-        pr_Vbox1.pack_start(pr_Hbox1, False, False, 7)
-        pr_Vbox1.pack_start(pr_Hbox2, False, False, 7)
+        pr_Vbox1.pack_start(title1, padding=16, expand=False)
+        pr_Vbox1.pack_start(pr_Hbox1, False, False, 0)
+        pr_Vbox1.pack_start(pw_fixed, False, False, 0)
+        pr_Vbox1.pack_start(self.update_boot_msg, False, False, 7)
+
+        pr_Vbox1.pack_start(title2, padding=16, expand=False)
+        pr_Vbox1.pack_start(pr_Hbox2, False, False, 5)
         notebook.append_page(pr_Vbox1, gtk.Label('Preferences'))
-        check_updates_button.connect("clicked", self.check_for_new_ver)
+
+        update_boot_button.connect("clicked", self.update_boot_fn)
         set_default_button.connect("clicked", self.set_default_boot)
-        check_updates_button.set_tooltip_text("Download a new version of boot")
+        update_boot_button.set_tooltip_text("Download and install a new version of boot")
         set_default_button.set_tooltip_text("Set boot to its default status")
 
         ######## LIST OF ACTIONS TO PERFORM WHEN THE GUI STARTS UP ##########
@@ -1511,6 +1646,7 @@ class mk_gui:
         default_www = _txt
         self.www_adr_bar.set_text(default_www)
         self.browser.open(default_www)
+        # TODO display an error message if you are offline
 
         ######## POPULATE SYNTHESIZE TAB ########
         # just copy content from the compile dir entry field
@@ -1535,12 +1671,13 @@ class mk_gui:
         # hide compile progress bar
         self.comp_bar.set_visible(False)
 
-        ######## POPULATE OPENCORES TAB ########
+        ######## POPULATE IP CORES TAB ########
 
-        # Load opencores initial page
-        oc_default_www = 'http://opencores.org/projects'
+        # Load ip cores database at freerangefactory.org
+        oc_default_www = 'http://www.freerangefactory.org/cores/index.html'
         self.oc_www_adr_bar.set_text(oc_default_www)
         self.oc_browser.open(oc_default_www)
+        # TODO display an error message if you are offline
 
         # create a var where to store your OpenCores website login and password
         self.oc_login_data = ['','']
@@ -1548,6 +1685,10 @@ class mk_gui:
         # create a website object to use to authenticate and download stuff 
         # from the OpenOffice website using mechanize
         self.oc_website = opencores.open_cores_website()
+
+        ######## PREFERENCES TAB ########
+        # check for new versions of boot
+        self.check_for_new_ver(self) # update update label
 
         ######## GENERAL PURPOSE ACTIONS ########
         

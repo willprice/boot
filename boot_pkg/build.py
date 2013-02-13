@@ -5,7 +5,7 @@
 # (C) 2012 Fabrizio Tappero
 #
 import sys, os
-from subprocess import call
+from subprocess import call, Popen, PIPE
 
 try:
     from boot_pkg import nanorc
@@ -48,7 +48,34 @@ def build_all():
         print 'Downloading and install necessary packages.'
         print 'You need to be connected to the Internet.\n'
 
-        call('sudo apt-get install ghdl gtkwave'.split())
+        call('sudo apt-get install gtkwave'.split())
+
+        call('sudo apt-get install ghdl'.split())
+
+        # implement and alternative way to install GHDL
+        call('sudo apt-get install dpkg'.split()) # install dpkg
+        # check if GHDL has being installed
+        proc = Popen('dpkg -s ghdl | grep Status', shell=True, stdout=PIPE, )
+        _answer = proc.communicate()[0]
+        if 'Status: install ok installed' in _answer:
+            pass # GHDL is installed
+        else:
+            # GHDL is not installed, add new repository and try again
+            print 'GHDL will be installed from the repository: ppa:pgavin/ghdl'
+            call('sudo add-apt-repository ppa:pgavin/ghdl'.split())
+            call('sudo apt-get update'.split())
+            call('sudo apt-get install ghdl'.split())
+
+        # check if GHDL has been installed
+        proc = Popen('dpkg -s ghdl | grep Status', shell=True, stdout=PIPE, )
+        _answer = proc.communicate()[0]
+
+        if 'Status: install ok installed' in _answer:
+            print 'GHLD properly installed'
+        else:
+            print 'ERROR. GHDL has not being installed.'
+
+        # make a desktop launcher in ~/Desktop
         make_desktop_launcher()
 
         # create a ~/.nanorc file to enable colors in nano.
@@ -63,6 +90,8 @@ def build_all():
             call('sudo apt-get install python-pip'.split())
             call('sudo apt-get install gtk2-engines-pixbuf'.split())
             call('sudo apt-get install python-webkit'.split())
+            call('sudo apt-get install python-vte'.split())
+            call('sudo apt-get install python-pexpect'.split())
             call('sudo pip install argparse pygments mechanize'.split())
 
         # it is better to install pygtk from apt-get because pip seems to fail

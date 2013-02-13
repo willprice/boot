@@ -1,7 +1,7 @@
 #
 # this file is part of the software tool BOOT
 # URL: freerangefactory.org
-# (C) 2012 Fabrizio Tappero
+# (C) 2013 Fabrizio Tappero
 #
 import os, mechanize, cookielib
 
@@ -65,14 +65,14 @@ class open_cores_website():
         self.cookies.save(self.cookies_file) # save cookies locally
         return 0
         
-    def login_needed(self):
+    def login_needed(self, _www):
         ''' Method to check if you need to login or if you are already
             logged in. 
         ''' 
 
         # use your personal OpenCores project page to see if you can open it
-        _web = self.br.open("http://opencores.org/acc")
-        _answer = self.br.response().read()
+        _web = self.br.open(_www)
+        _answer = _web.read()
 
         if '403 - Forbidden' in _answer:
             print 'Login needed.'
@@ -86,12 +86,14 @@ class open_cores_website():
             the page will be saved in a file.
         ''' 
 
-        # download the file
-        self.br.open(dl_url)
+        # download the link content
+        print 'Downloading:', dl_url
+        _content = self.br.open(dl_url).read()
 
         dl_fl = os.path.join(dl_dir, dl_fl)
-        with open(dl_fl, 'w') as file:
-            file.write(self.br.response().read())
+        with open(dl_fl, 'wb') as file:
+            #file.write(self.br.response().read())
+            file.write(_content)
     
         print dl_fl, "has been downloaded.\n"
         return 0
@@ -119,7 +121,7 @@ if __name__ == '__main__':
     website = open_cores_website()
     
     # login if necessary
-    if 'yes' in website.login_needed():
+    if 'yes' in website.login_needed("http://opencores.org/acc"):
         website.login(login_data)
 
     # get link and download

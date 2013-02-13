@@ -2,7 +2,7 @@
 #
 # this file is part of the software tool BOOT
 # URL: freerangefactory.org
-# (C) 2012 Fabrizio Tappero
+# (C) 2013 Fabrizio Tappero
 #
 '''
 FILE: boot.py
@@ -10,7 +10,7 @@ FILE: boot.py
 application to compile, simulate and synthesize your VHDL code.
 how to run: ./boot
 
-Copyright (C) 2012 Fabrizio Tappero
+Copyright (C) 2013 Fabrizio Tappero
 
 Site:     http://www.freerangefactory.org
 Author:   Fabrizio Tappero, fabrizio.tappero<at>gmail.com

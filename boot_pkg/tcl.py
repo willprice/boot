@@ -1,7 +1,7 @@
 #
 # this file is part of the software tool BOOT
 # URL: freerangefactory.org
-# (C) 2012 Fabrizio Tappero
+# (C) 2013 Fabrizio Tappero
 #
 import os
 

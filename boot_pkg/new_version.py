@@ -8,7 +8,7 @@ from pkg_resources import parse_version
 
 def check_on_pypi():
     ''' Check for new versions of "boot" on the Pypi server.
-        This function returns only text lines.
+        This function returns just a text lines.
     '''
     import argparse
 
