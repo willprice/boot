@@ -3,7 +3,7 @@
 # URL: freerangefactory.org
 # (C) 2013 Fabrizio Tappero
 #
-import os, mechanize, cookielib
+import os, mechanize, cookielib, time, gtk
 
 class open_cores_website():
     ''' Class to login and download stuff from: "www.opencores.org"
@@ -11,6 +11,7 @@ class open_cores_website():
     '''   
 
     def __init__(self):
+
         # Create a browser
         self.br = mechanize.Browser()
         
@@ -92,10 +93,19 @@ class open_cores_website():
 
         dl_fl = os.path.join(dl_dir, dl_fl)
         with open(dl_fl, 'wb') as file:
-            #file.write(self.br.response().read())
             file.write(_content)
     
-        print dl_fl, "has been downloaded.\n"
+        # try to unzip the file just downloaded
+        print dl_fl, "has been downloaded. Unzipping now.\n"
+        try:
+            import tarfile
+            tar = tarfile.open(dl_fl, 'r:gz')
+            for item in tar:
+                tar.extract(item, path=dl_dir)
+            print 'Unzipping done.'
+        except:
+            pass
+
         return 0
 
 

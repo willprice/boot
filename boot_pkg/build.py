@@ -92,7 +92,8 @@ def build_all():
             call('sudo apt-get install python-webkit'.split())
             call('sudo apt-get install python-vte'.split())
             call('sudo apt-get install python-pexpect'.split())
-            call('sudo pip install argparse pygments mechanize'.split())
+            call('sudo pip install --upgrade argparse pygments mechanize'.split())
+            call('sudo pip install --upgrade xstools'.split())
 
         # it is better to install pygtk from apt-get because pip seems to fail
         if True:

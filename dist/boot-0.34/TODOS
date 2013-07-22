@@ -1,0 +1,66 @@
+# make a button in preference to set things as default. best way is maybe to    DONE
+  delete ~/.boot and in some how restart boot.
+
+# fix the problem with the python and environment variables which do not allow  DONE
+  the use of the "source" command.
+
+# make a beautify function that colors the synthesis text output as well as the DONE
+  compile text output too.
+
+# redesign the synthesis start and stop process handling because it looks like  DONE
+  processing power is used when the synthesis is finished.
+
+# redesign the compile semaphore icons and use a progress bar.                  DONE
+
+# add a compile button or bind a return key to it.                              DONE
+
+# add a compile and simulate button. For this task I need to rewrite the        DONE
+  compile and simulate process.
+
+# write two auto check boxes for Compile and Compile & Simulate tasks           DONE
+
+# add a button or text to open the Synthesis Report file counter_top.syr        DONE
+
+# add a progress bar or some way to see that the synthesis process is ongoing.  DONE
+
+# rewrite the beautifier function and make a class instead. In this way it can  DONE 
+  be used for both synthesis and compile output window. Also use this new 
+  beautifier class to color the boot text editor.
+
+# add save and close button to the txt viewer. In this way the synthesis script DONE
+  will be editable by the user.
+
+# find a way to pull the book "free range factory" from the Internet, doing so  NOT IMPORTANT
+  in a new tab might be a little too intrusive.
+
+# find a way to pull vhdl code from opencores.org in a tab. It would be also    DONE
+  pretty cool to be able to import opencores code in your src folder.            
+  For this task, it would be good to be able to load opencores website and
+  find a way customize the way all pages look. No banners, etc. With webkit 
+  this should be possible.
+
+# modify things so that pip is the default installer.                           DONE
+
+# find a way to let Pip copy the file boot.desktop in /usr/share/applications/  DONE
+
+# change the way new versions of boot are checked and use pip                   DONE
+
+# add a method to get pip to install all boot dependencies via setup.py         DONE
+
+# fix compiling process now broken and the accelerators of gtkwave now          DONE
+  interfering with nano editor.
+
+# make a better icon for boot                                                   DONE
+
+# fix html look on http://opencores.org/project,pcie_sg_dma and also, the
+  cookies between mechanize and webkit are not shared. Currently the password
+  is needed twice.
+
+# include a new IP Cores server from which it is possible to download cores
+  with just one click.                                                          DONE
+
+# create a MS Windows version of "boot"                                         LOTS OF WORK !
+
+
+
+

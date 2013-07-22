@@ -43,31 +43,34 @@ www.freerangefactory.org
 
 If you are interested in becoming an active developed of boot. 
 
-0) Initialize your local git user name and e-mail data on your local machine. 
+1) Install git (under Linux) with the terminal command: 
+    sudo apt-get install git
+
+1) Initialize your local git user name and e-mail data on your local machine. 
     git config --global user.name "Mike Doou"
     git config --global user.email "m.doou@gmail.com"
 
-1) Send us an e-mail telling us that you want to become an active contributor
+2) Send us an e-mail telling us that you want to become an active contributor
    at the address:
         contact(at)freerangefactory.org
 
-2) You will receive a git repository password which will allow you to push your
+3) You will receive a git repository password which will allow you to push your
    changes into the google code repository.
    Once you have the password, add the following line to your file ~/.netrc
         machine code.google.com login your.email@gmail.com password [password] 
 
-3) Get the boot source code with:
+4) Get the boot source code with:
         git clone http://code.google.com/p/boot-vhdl boot
 
-4) Modify your code as you wish.
+5) Modify your code as you wish.
         
-5) Check the status of your modifications and commit locally:
+6) Check the status of your modifications and commit locally:
         git status
         git diff
         git add .
         git commit -m "I have done this and that"
 
-6) Upload your changes to the google code repository:
+7) Upload your changes to the google code repository:
         git push https://code.google.com/p/boot-vhdl
 
 

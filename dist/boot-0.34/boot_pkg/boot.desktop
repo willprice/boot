@@ -1,0 +1,9 @@
+[Desktop Entry]
+
+Type=Application
+Name=boot
+Exec=boot
+Icon=boot_icn.png
+Terminal=false
+Categories=GTK;GNOME;Utility;
+

@@ -1,0 +1,20 @@
+This folder contains the Linux binary distribution (precompiled version) of 
+the open-source package GHDL. GHLD is available from:
+
+http://gna.org/projects/ghdl/
+
+All GHDL files must be copied in the "/usr/local/" directory. 
+
+Note: you must also have a C compiler and zlib installed.
+
+GHDL mailing list:
+  https://mail.gna.org/listinfo/ghdl-discuss/
+
+GHDL is Copyright 2002 - 2010 Tristan Gingold.
+GHDL is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+
+

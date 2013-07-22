@@ -5,7 +5,7 @@
 #
 import pygtk, gtk, gobject, glob, os, time
 import ConfigParser, webkit, mechanize
-import vte
+import vte, threading
 
 from subprocess import Popen, PIPE, STDOUT
 
@@ -32,9 +32,11 @@ class mk_gui:
 
     # function to update the synthesis top-level design field every time the
     # top-level design filed in the compile tab changes.
+    # this will change it in both Synthesis tab and Program tab
     def dir_entry_changed(self, widget):
         _tmp = self.dir_entry.get_text()
-        self.top_level_label.set_text(_tmp)
+        self.top_level_label.set_text('Top-level design: ' + _tmp)
+        self.prog_top_level_label.set_text('Top-level design: ' + _tmp)
 
     # function to deleted or create a new file when top-level design file entry
     # is in focus and CTRL+D or CTRL+N is pressed
@@ -135,11 +137,10 @@ class mk_gui:
                  (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
                  gtk.STOCK_OPEN, gtk.RESPONSE_OK))
         dialog.set_default_response(gtk.RESPONSE_OK)
-        #_dir=os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
+
         _dir=os.path.dirname(self.dir_entry.get_text())
-        print 'AAAA', _dir
         dialog.set_current_folder(_dir)
-        print _dir
+        print 'Working directory:', _dir
         filter = gtk.FileFilter()
         filter.set_name(".vhdl files")
         filter.add_pattern("*.vhdl")
@@ -152,7 +153,7 @@ class mk_gui:
         dialog.add_filter(filter)
         response = dialog.run()
         if response == gtk.RESPONSE_OK:
-            print dialog.get_filename(), 'selected'
+            print 'Selected top-level design file:',dialog.get_filename()
             self.dir_entry.set_text(dialog.get_filename())
         elif response == gtk.RESPONSE_CANCEL:
             pass
@@ -410,7 +411,7 @@ class mk_gui:
             self.start_stop_syn_button.set_label('Stop Synthesis')
             if self.syn_spinner is not None:
                 self.syn_spinner.start() # make the synthesis wheen spin
-            #return True # process exista and still running
+            #return True # process exist and still running
         else:
             gobject.source_remove(self.g_syn_id)
             print 'Synthesis process naturally ended and pipe closed.'
@@ -552,10 +553,158 @@ class mk_gui:
                     print 'Synthesis process already killed.'
                     # change button label
                     self.start_stop_syn_button.set_label('Start Synthesis')
-                    
         else:
             print 'Wrong synthesis command.'
         return 0
+
+
+
+    # watchdog to kill programming process and control the spinner
+    def prog_watchdog(self,w):
+
+        if type(self.prog_p) is Popen and self.prog_p.poll() == None:
+            # the programming process is alive
+            # change button label
+            self.btn_program.set_label('Stop')
+            if self.prog_spinner is not None:
+                self.prog_spinner.start() # make the programming wheel spin
+        else:
+            # the programming process has died
+            gobject.source_remove(self.g_prog_id)
+            print 'Programming process naturally ended and pipe closed.'
+            # change button label
+            self.btn_program.set_label('Program')
+            self.prog_entry.set_text('Board succesfully programmed !')
+            if self.prog_spinner is not None:
+                self.prog_spinner.stop() # make the program wheel stop spinning
+
+            # kill programming process
+            try:
+                self.prog_p.kill()
+                while self.prog_p.poll() == None:
+                    time.sleep(0.2)
+            except:
+                pass
+
+            return False # this will stop the "gobject.timeout_add"
+
+        # kill programming process if it is all done
+
+        # TODO I have to find a way to find out if the programming process 
+        # has ended succesfully..... HOW ????
+        #print 'ping'
+        _txt = self.prog_entry.get_text()
+        #if 'board succesfully programmed' in _txt:
+        if 'version.py' in _txt:
+            self.prog_entry.set_text('Board succesfully programmed !')
+            print 'Programming process has ended.'
+            self.btn_program.set_label('Program')
+            if self.prog_spinner is not None:
+                self.prog_spinner.stop() # make the program wheel stop spinning
+
+            # kill programming process
+            try:
+                self.prog_p.kill()
+                while self.prog_p.poll() == None:
+                    time.sleep(0.2)
+            except:
+                pass
+
+            return False # this will stop this timeout function
+
+        return True # this will keep this timeout function going
+
+
+    # Start and stop the Program to upload your board
+    def btn_program_action(self, widget):
+
+        # it is necessary to read the status of the button every time
+        action = self.btn_program.get_label()
+
+        # get information from Program tab
+        prog_cmd = self.prog_entry.get_text()
+        
+        # execute stuff
+        if action=='Program':
+            #save some parameters on local "~/.boot" file
+            #self.save_configuration_locally()
+
+            # if the program process exists already and has not terminated then
+            # do nothing and exit
+            if self.prog_p!=None and self.prog_p.returncode == None:
+                print 'Program process not terminated yet. Exiting'
+                return 0
+            print 'Starting program process.'
+
+            # let's use the programm command entry field to communicate with 
+            # the user !
+            self.prog_entry.set_text('Programming the board...')
+
+            # run program command
+            try:
+                self.prog_p = Popen(['/bin/sh'], shell=False, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+                self.prog_p.stdin.write(prog_cmd + "\n")
+                print 'Running the commmand:', prog_cmd
+                # remember that you need to kill this process when it is done
+
+                print 'New Programm process ID:',self.prog_p.pid
+            except:
+                print 'Problems in programming the board with commands:', prog_cmd
+                return 0
+
+            # now the button to program will become the button
+            # to stop the programming process by changing its label
+            self.btn_program.set_label('Stop')
+
+            # let's now redirect "self.prog_p" stdout to a GUI method
+            # using "gobject".
+            # let's deleted it if it already exist
+            if self.g_prog_id != None:
+                gobject.source_remove(self.g_prog_id)
+            self.g_prog_id = gobject.io_add_watch(self.prog_p.stdout,
+                                                 gobject.IO_IN,
+                                                 self.write_to_prog_output) 
+
+            # now that the program process has started let's create a
+            # second process that kills it
+            gobject.timeout_add(200, self.prog_watchdog, self)
+
+            # done !
+
+        elif action =='Stop':
+
+            # delete gobject for synthesis process communication
+            if self.g_prog_id != None:
+                gobject.source_remove(self.g_prog_id)
+
+            # if the programming process exists and is running kill it and
+            # check the existence of programming process
+            if type(self.prog_p) is Popen:
+                try:
+                    print 'Current Programming process ID:',self.prog_p.pid
+                    self.prog_p.kill() # kill programming process
+                    while self.prog_p.poll() == None:
+                        time.sleep(0.2)
+                    print 'Programming process stopped.'
+                    # stop spin wheel
+                    #if self.prog_spinner is not None:
+                    #    self.prog_spinner.stop()
+                    # change button label
+                    #self.btn_program.set_label('Program')
+                except:
+                    print 'Programming process already killed.'
+                    # change button label
+                    #self.btn_program.set_label('Program')
+        else:
+            print 'Wrong Programming command.'
+
+        return 0
+
+
+
+
+
+
 
     # this class add more keywords that will be colored in blu.
     # TODO find a way to color stuff in red.
@@ -613,8 +762,20 @@ class mk_gui:
         else:
             return False
 
+    # this method allows data in to get directed to the programming output field
+    # which is also the field where the programming command is entered
+    def write_to_prog_output(self, fd, condition):
+        if condition == gobject.IO_IN:
+            char = fd.readline()
+            self.prog_entry.set_text(self.prog_entry.get_text() + char)
+            self.prog_entry.set_text(char)
+            return True
+        else:
+            return False
+
+
     # populate the FPGA device fields
-    def make_dropdown_menu(self, data_in):
+    def make_dropdown_menu(self, data_in, _l, _h):
         # create a gtk.trees with data_in in it
         # note how only the last element of data_in is displayed
         store = gtk.TreeStore(str)
@@ -627,7 +788,7 @@ class mk_gui:
         combo_cell_text = gtk.CellRendererText()
         combo.pack_start(combo_cell_text, True)
         combo.add_attribute(combo_cell_text, "text", 0)
-        combo.set_size_request(142, -1)
+        combo.set_size_request(_l, _h)
         return combo
  
     # filter device dropdown field
@@ -796,9 +957,8 @@ class mk_gui:
         self.oc_scroller.show() # show web page once loaded
         self.oc_progress.set_visible(False)
 
-    
+    # TODO this needs to be tested (right click menu - download - etc)
     def oc_download(self, webview, download):
-        import threading
         saveas = gtk.FileChooserDialog(title=None,
                  action=gtk.FILE_CHOOSER_ACTION_SAVE,
                  buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
@@ -896,23 +1056,24 @@ class mk_gui:
         dl_fl = _url.split('/')[-1]
         #_dir=os.path.dirname(os.path.realpath(self.dir_entry.get_text()))
         _dir = os.path.dirname(self.dir_entry.get_text())
-        _answer = self.on_warn('About to download the following file: \n'+ dl_fl)
+        _txt = 'About to download: \n'+\
+                dl_fl + '\n' +\
+                'and save it in:\n'+\
+                _dir
+
+        _answer = self.on_warn(_txt)
         if _answer == gtk.RESPONSE_OK: 
             print "Downloading and unzipping the file:", _url
-            self.oc_website.download(_url, _dir, dl_fl) 
-            # TODO it would be good to run this in a different thread (see previous function)
-            self.on_warn('File succesfully downloaded, unzipping it now.')
+            #self.oc_website.download(_url, _dir, dl_fl) # download in single-threading mode
+                                                         # this will block the window
 
-            # unzip the tar file
-            try:
-                import tarfile
-                dl_fl = os.path.join(_dir, dl_fl)
-                tar = tarfile.open(dl_fl, 'r:gz')
-                for item in tar:
-                    tar.extract(item, path=_dir)
-                print 'Unzipping done.'
-            except:
-                pass
+            # download (multi-threading version)
+            mythread = threading.Thread(name = 'oc_website.download', 
+                                        target = self.oc_website.download,
+                                        args = (_url, _dir, dl_fl))
+            mythread.setDaemon(True) # this allows the GUI to be responsive during download
+            mythread.start()
+            
 
     # this is the login box for requesting OpenCores login and password
     def oc_loginBox(self):
@@ -992,6 +1153,29 @@ class mk_gui:
         self.progress.set_visible(True)
     def load_finished(self, webview, frame):
         self.progress.set_visible(False)
+
+    # re-draw the program command everytime the program dropdown menu changes
+    def prog_dropdown_changed(self, widget):
+        current_board_index = self.prog_dropdown.get_active()
+        current_board = self.prog_dropdown.get_model()[self.prog_dropdown.get_active()][0]
+        cmd = self.boards_commands[current_board_index]
+
+        # working directory
+        wd = os.path.dirname(self.dir_entry.get_text())
+
+        # do not load any directory for the "xstest.py" command
+        if current_board_index==0 or current_board_index==1:
+            wd = ''
+
+        # search for .bits file inside working directory
+        if os.path.isdir(wd):
+            all_bit_files = glob.glob(os.path.join(wd,'*.bit'))
+            print 'Available .bit files:', all_bit_files
+            if len(all_bit_files)>0:
+                wd = all_bit_files[0] # just take the first .bit file in the working folder
+
+        cmd = cmd + wd
+        self.prog_entry.set_text(cmd)
 
     # re-scroll the synthesis text output window so that
     # new text is always shown
@@ -1336,11 +1520,11 @@ class mk_gui:
         Hbox_syn5.pack_start(gtk.Label('Device type: '), False, False,3)
 
         # populate FPGA family, device and package fields
-        self.ma = self.make_dropdown_menu(devices.dev_manufacturer)
-        self.fa = self.make_dropdown_menu(devices.dev_family)
-        self.de = self.make_dropdown_menu(devices.dev_device)
-        self.pa = self.make_dropdown_menu(devices.dev_package)
-        self.sp = self.make_dropdown_menu(devices.dev_speed)
+        self.ma = self.make_dropdown_menu(devices.dev_manufacturer, 142, -1)
+        self.fa = self.make_dropdown_menu(devices.dev_family, 142, -1)
+        self.de = self.make_dropdown_menu(devices.dev_device, 142, -1)
+        self.pa = self.make_dropdown_menu(devices.dev_package, 142, -1)
+        self.sp = self.make_dropdown_menu(devices.dev_speed, 142, -1)
         # set the default device values
         self.ma.set_active(0)
         self.fa.set_active(0)
@@ -1510,6 +1694,98 @@ class mk_gui:
         self.oc_back_button.set_sensitive(False)
         self.oc_forward_button.set_sensitive(False)
     
+        ######## PROGRAM TAB ##########
+        # create the Program tab
+        prog_Vbox1 = gtk.VBox(False, 0)
+        prog_Vbox1.set_border_width(10)
+
+        notebook.append_page(prog_Vbox1, gtk.Label('Program')) # load
+
+        # top-level design label
+        self.prog_top_level_label = gtk.Label() # top-level design label
+        self.prog_top_level_label.set_tooltip_text('This is your top-level design '+
+                        'file. You can edit this in the Compile tab.')
+
+        prog_Hbox0 = gtk.HBox(False, 0)
+        prog_Hbox1 = gtk.HBox(False, 0)
+
+        # labels
+        prog_lb1 = gtk.Label()
+        prog_fixed = gtk.Fixed()
+        prog_lb1.set_use_markup(gtk.TRUE)
+        prog_lb1.set_markup('<span size="8000" foreground="#B5B2AC">'+
+                           'programming command</span>')
+        prog_fixed.put(prog_lb1,151,0)
+
+        # program button
+        self.btn_program = gtk.Button('Program')
+        self.btn_program.set_tooltip_text(
+                'take the .bit file and program your FPGA/CPLD board.')
+
+        # this is the program process handler
+        self.prog_p = None
+
+        # this is the gobject for communication with the programming output field
+        self.g_prog_id = None
+
+        # link an action to the program button
+        self.btn_program.connect("clicked", 
+                                 self.btn_program_action)
+
+        # program command field
+        self.prog_entry = gtk.Entry()# make program command field entry
+        self.prog_entry.set_tooltip_text('Enter the desired program command.')
+        self.prog_entry.set_text('none')
+
+        # make a spinner to indicate "work in progress"
+        # in some GTK distributions the spinner does not exist
+        try:
+            self.prog_spinner = gtk.Spinner()
+            self.prog_spinner.set_size_request(25,25)
+        except Exception:
+            self.prog_spinner = None
+
+        # create a drop-down menu for all available programming commands
+        # it is important the these two arrays have the same length
+        self.boards_models  =  ['Select board', 
+                            'XuLa test',
+                            'XuLa FPGA',
+                            'XuLa FLASH',
+                            'XuLa-2 FPGA',
+                            'XuLa-2 FLASH',
+                            'XuLa-2 SD']
+
+        self.boards_commands = ['', 
+                            'xtest.py -u 0 '    ,
+                            'xsload.py -u 0 -f ',
+                            'xsload.py -u 0 -f ',
+                            'xsload.py -u 0 -f ',
+                            'xsload.py -u 0 -f ',
+                            'xsload.py -u 0 -f ']
+
+        self.prog_dropdown = self.make_dropdown_menu(self.boards_models, 142, -1)
+        self.prog_dropdown.set_active(0)
+        self.prog_dropdown.connect("changed", self.prog_dropdown_changed)
+
+        # pack things together
+        prog_Hbox0.pack_start(self.prog_top_level_label, False, False, 3)
+        prog_Hbox1.pack_start(self.prog_dropdown, False, False, 3)
+        prog_Hbox1.pack_start(self.prog_entry, True, True, 3)
+
+        # create a spinner and pack it
+        if self.syn_spinner is not None:
+            prog_Hbox1.pack_end(self.prog_spinner, False, False, 3)
+        prog_Hbox1.pack_end(self.btn_program, False, False, 3)
+
+        # make line separator
+        prog_separator = gtk.HSeparator()
+
+        # pack horizontally
+        prog_Vbox1.pack_start(prog_Hbox0, False, False, 5)
+        prog_Vbox1.pack_start(prog_separator, False, False, 10)
+        prog_Vbox1.pack_start(prog_Hbox1, False, False, 0)
+        prog_Vbox1.pack_start(prog_fixed, False, False, 0) # label
+
  
         ######## HELP TAB ##########
         # make help tab (this is basically a web browser)
@@ -1591,7 +1867,8 @@ class mk_gui:
 
         pr_Vbox1.pack_start(title2, padding=16, expand=False)
         pr_Vbox1.pack_start(pr_Hbox2, False, False, 5)
-        notebook.append_page(pr_Vbox1, gtk.Label('Preferences'))
+
+        notebook.insert_page(pr_Vbox1, gtk.Label('Preferences'))
 
         update_boot_button.connect("clicked", self.update_boot_fn)
         set_default_button.connect("clicked", self.set_default_boot)
@@ -1685,6 +1962,11 @@ class mk_gui:
         # create a website object to use to authenticate and download stuff 
         # from the OpenOffice website using mechanize
         self.oc_website = opencores.open_cores_website()
+
+        ######## POPULATE PROGRAM TAB ########
+        # just copy content from the compile dir entry field
+        self.prog_top_level_label.set_text('Top-level design: ' + \
+                                      self.dir_entry.get_text())
 
         ######## PREFERENCES TAB ########
         # check for new versions of boot

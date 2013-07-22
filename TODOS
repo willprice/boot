@@ -52,10 +52,29 @@
 
 # make a better icon for boot                                                   DONE
 
-# fix html look on http://opencores.org/project,pcie_sg_dma and also, the 
-  cookies between mechanize and webkit are not shared (password is needed twice)
+# fix html look on http://opencores.org/project,pcie_sg_dma and also, the
+  cookies between mechanize and webkit are not shared. Currently the password
+  is needed twice.
 
-# create a MS Windows version of "boot"
+# include a new IP Cores server from which it is possible to download cores
+  with just one click.                                                          DONE
+
+# create a MS Windows version of "boot"                                         LOTS OF WORK !
+
+# GHDL does not install properly from the apt-get nor from pgavin repo
+
+# boot window seems to be smaller than its content.
+
+# when you are in ~/ (and so you have not created a project) and you download
+  opencores packages they seem to gwt installed into /home/ generating an error.
+
+# in debian the launcher that gets copied on the desktop does not get the icon,
+  same problem for debian tab menu.
+
+# for debian ghdl does not get installed !!!
+
+
+
 
 
 

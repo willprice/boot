@@ -1,0 +1,77 @@
+------------------------------------- boot -------------------------------------
+
+boot: the best way to compile, simulate and synthesize your vhdl code.
+
+www.freerangefactory.org
+
+http://code.google.com/p/boot-vhdl
+
+
+--------------------------- boot - how to contribute ---------------------------
+
+git is the version control system used for boot and code.google.com is where the
+source code of boot is hosted.
+These instructions tell you how to contribute to the development of boot.
+
+0) Install git and gitk.
+
+1) Get the latest version of boot:
+        git clone http://code.google.com/p/boot-vhdl boot
+        cd boot
+
+2) you can see the git history of boot with the command:
+        gitk
+
+4) Modify and save the content of boot.py or any other file
+
+5) Check the status of your modifications with the command:
+        git status
+        git diff
+
+5) Create a git patch file with the command:
+        git diff > my_patch.patch
+
+6) Send the file "my_patch.patch" together with and an explanation of what you
+   have done to:
+        contact(at)freerangefactory.org
+
+You can find more information about boot at:
+www.freerangefactory.org
+
+
+---------------------- boot - become a developer -------------------------------
+
+If you are interested in becoming an active developed of boot. 
+
+1) Install git (under Linux) with the terminal command: 
+    sudo apt-get install git
+
+1) Initialize your local git user name and e-mail data on your local machine. 
+    git config --global user.name "Mike Doou"
+    git config --global user.email "m.doou@gmail.com"
+
+2) Send us an e-mail telling us that you want to become an active contributor
+   at the address:
+        contact(at)freerangefactory.org
+
+3) You will receive a git repository password which will allow you to push your
+   changes into the google code repository.
+   Once you have the password, add the following line to your file ~/.netrc
+        machine code.google.com login your.email@gmail.com password [password] 
+
+4) Get the boot source code with:
+        git clone http://code.google.com/p/boot-vhdl boot
+
+5) Modify your code as you wish.
+        
+6) Check the status of your modifications and commit locally:
+        git status
+        git diff
+        git add .
+        git commit -m "I have done this and that"
+
+7) Upload your changes to the google code repository:
+        git push https://code.google.com/p/boot-vhdl
+
+
+

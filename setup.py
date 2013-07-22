@@ -31,7 +31,7 @@ setup(
                 ('/usr/share/icons', ['boot_pkg/icns/boot_icn.png'])],      # icon
     scripts = ['boot'], # the executable 'boot' will be put it '/usr/local/bin'
     install_requires=['Pygments', 'argparse','mechanize'],
-    # remember that some boot depencencies will be installed with "sudo boot -b"
+    # remember that some boot dependencies will be installed with "sudo boot -b"
     license='GNU GPL License',
     long_description=open('README').read(),
     classifiers = [
@@ -44,16 +44,19 @@ setup(
                     'Natural Language :: English']
     )
 #
-# to create a registration profile (used to publish a new boot version 
-# on the pip website) run:
-#       python setup.py register
-#
-# to create a boot distribiution zip folder run:
+# to create a boot distribution zip folder run:
 #       python setup.py sdist --formats=zip
 #
 #
-# the pip distribiution file can be manually uploaded on the
+# the pip distribution .zip file can be manually uploaded on the
 # Python cheese factory website: http://pypi.python.org/pypi
+# the easiest way to do so is to begin by uploading the PKG file
+# after that you can add the zip file. 
+#
+# OPTIONAL. You can alternatively upload everything from the terminal.
+#           First you  create a registration profile (used to publish 
+#           a new boot version on the pip website). To do so run:
+#               python setup.py register
 #
 # to install locally run: 
 #       sudo python setup.py install

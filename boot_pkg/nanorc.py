@@ -73,7 +73,7 @@ include "/usr/share/nano/pov.nanorc"
 include "/usr/share/nano/xml.nanorc"
 
 ## Custom coloring for VHDL files.
-syntax "vhdl" "\.vhdl$"
+syntax "vhdl" "vhd" "VHDL" "VHD" "v" "V" "\.vhdl$"
 icolor brightblue "def [0-9A-Z_]+"
 color brightred "\<(abs|access|after|alias|all|and|architecture|array|assert|attribute|begin|block|body|buffer|bus|case|component|configuration|constant|disconnect|downto|else|elsif|end|entity|exit|file|for|function|generate|generic|group|guarded|if|impure|in|inertial|inout|is|label|library|linkage|literal|loop|map|mod|nand|new|next|nor|not|null|of|on|open|or|others|out|package|port|postponed|procedure|process|pure|range|record|register|reject|rem|report|return|rol|ror|select|severity|signal|shared|sla|sll|sra|srl|subtype|then|to|transport|type|unaffected|units|until|use|variable|wait|when|while|with|xnor|xor)\>"
 color green "\<(std_logic|std_logic_vector|bit)\>"
@@ -105,7 +105,10 @@ def make():
         IMPORTANT: if you already have this file NOTHING WILL BE DONE. 
     '''
     if os.path.isfile(os.getenv("HOME")+'/.nanorc'):
-        print 'WARNING. "~/.nanorc" file already exist. Nothing will be done.'
+        #print 'WARNING. "~/.nanorc" file already exist. Nothing will be done.'
+        with open(os.getenv("HOME")+'/.nanorc','w') as fl:
+            fl.write(_content1)
+        print '"~/.nanorc" configuration file created.'
     else:
         with open(os.getenv("HOME")+'/.nanorc','w') as fl:
             fl.write(_content1)
