@@ -1,0 +1,7 @@
+To generate both Linux and Windows boot installers run:
+
+./make_boot_installer.sh
+
+see folder ../installers
+
+Please note that the boot installer includes all necessary GHDL files.

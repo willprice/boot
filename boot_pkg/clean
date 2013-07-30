@@ -1,6 +1,0 @@
-#!/bin/bash
-
-rm *.pyc *~
-rm ../*~
-rm ../MANIFEST
-

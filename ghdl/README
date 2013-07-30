@@ -1,0 +1,7 @@
+
+To generate GHDL Linux 32/64 bit installers run:
+
+./make_ghdl_installer.sh
+
+
+see folder ../installers

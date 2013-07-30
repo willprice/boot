@@ -1,0 +1,9 @@
+[Desktop Entry]
+Encoding=UTF-8
+Type=Application
+Name=boot
+Comment=Tool for VHDL simulation and synthesis 
+Exec=/usr/local/bin/boot
+Icon=boot-icon
+Terminal=false
+Categories=Development;

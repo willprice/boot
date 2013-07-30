@@ -1,3 +1,5 @@
+BOOT - TODOS
+
 # make a button in preference to set things as default. best way is maybe to    DONE
   delete ~/.boot and in some how restart boot.
 
@@ -61,21 +63,23 @@
 
 # create a MS Windows version of "boot"                                         LOTS OF WORK !
 
-# GHDL does not install properly from the apt-get nor from pgavin repo
+# GHDL does not install properly from the apt-get nor from pgavin repo          DONE
 
-# boot window seems to be smaller than its content.
+# boot window seems to be smaller than its content.                             DONE
 
 # when you are in ~/ (and so you have not created a project) and you download
   opencores packages they seem to gwt installed into /home/ generating an error.
 
-# in debian the launcher that gets copied on the desktop does not get the icon,
+# in debian the launcher that gets copied on the desktop does not get the icon, DONE
   same problem for debian tab menu.
 
-# for debian ghdl does not get installed !!!
+# with debian distro ghdl does not get installed !!!                            DONE
 
+# abandon pip and go for a different way to install boot and gedit.             DONE
+  Maybe a binary or a deb package. In this way you will have to change the way
+  boot upgrades too. Think hard about the best way to do it.
 
-
-
+# Integrate the XuLA board programmer
 
 
 

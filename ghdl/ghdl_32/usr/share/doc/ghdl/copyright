@@ -1,0 +1,31 @@
+-------------------------------------------------------------------------------
+GHDL Debian Package (includes GHDL, GCC, and Debian Packaging)
+
+Copyright © 2002-2008 Tristan Gingold & GHDL Contributors
+Copyright © 1985-2009 Free Software Foundation, Inc
+Copyright © 2004-2009 Wesley J. Landaker
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program.  If not, see <http://www.gnu.org/licenses/>.
+
+On Debian systems, you can find a copy in: /usr/share/common-licenses/GPL
+
+-------------------------------------------------------------------------------
+Standard VHDL headers
+
+Several standard VHDL headers say "all rights reserved". However, these
+standard headers are actually not copyrightable because they merely define an
+interface, and do NOT fall under any category of copyrightable works as defined
+by U.S. Code Title 17 §102(a), and in fact are specifically excluded by
+§102(b).
+
+-------------------------------------------------------------------------------

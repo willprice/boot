@@ -1,0 +1,79 @@
+# Xilinx TCL Flow Example
+# try.tcl
+# usage: xtclsh try.tcl
+# xtclsh is Xilinx tcl shell
+# reference: http://www.xilinx.com/itp/xilinx10/books/docs/dev/dev.pdf
+# -- details on commandline and tcl command to create and setup project
+# http://www.doulos.com/knowhow/tcltk/xilinx/
+# -- An good example
+
+# From an existing project, a tcl script can be generated in ISE/project/generate tcl
+# It could be usefull as a reference to write my own tcl script, especially to setup process properties.
+
+# Some include file will need to be copied to working directory if they are needed to parse the architecture
+# The include file which is included by other include file may need to be copied to working directory??
+# Within cygwin terminal, xtclsh works, but from tcsh or xterm, it frozen.
+
+# the following is oen of my example tcl script
+# It works with ISE 12.1
+
+if { $argc != 1 } {
+puts "The tcl script requires one arguement ."
+puts "For example, xtclsh main.tcl my_prj"
+puts "Please try again."
+} else {
+set PRJ_NAME [lindex $argv 0]
+}
+
+project close
+
+## put out a 'heartbeat' - so we know something's happening.
+puts "\n$PRJ_NAME: Rebuilding ($PRJ_NAME)...\n"
+
+
+# Remove existed project files
+set proj_exts [ list ise xise gise ]
+foreach ext $proj_exts {
+set proj_name "${PRJ_NAME}.$ext"
+if { [ file exists $proj_name ] } {
+file delete $proj_name
+}
+}
+
+# Build a new project
+project new ${PRJ_NAME}.xise
+
+# Set project properties
+project set family spartan6
+project set device xc6slx45t
+project set package fgg484
+project set speed -3
+
+
+project set "Verilog Include Directories" "...." -process "Synthesize - XST"
+
+# Add source file
+source rtl_files_list.tcl
+
+# Add constraint files
+xfile add "my_prj.ucf"
+
+# project set "Manual Implementation Compile Order" true
+
+# Set project properties
+#project set Top $proj_name
+
+# Set process option
+# TBD
+
+project set "Cores Search Directories" "...."
+
+
+project set "Macro Search Path" "...."
+
+# Run implementation
+process run "Implement Design"
+process run "Generate Programming File"
+
+# close project
+project close
